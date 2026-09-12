@@ -1,22 +1,30 @@
 package br.com.portaria.inscricao;
 
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.validation.BindingResult;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+
 import br.com.portaria.evento.Evento;
 import br.com.portaria.evento.ServicoDeEventos;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
-import org.springframework.stereotype.Controller;
-import org.springframework.ui.Model;
-import org.springframework.validation.BindingResult;
-import org.springframework.web.bind.annotation.*;
 
 /**
  * Área pública: o participante não faz login para se inscrever.
  */
 @Controller
-@RequestMapping("/e")
+@RequestMapping("/e/{identificador}")
 public class ControladorInscricaoPublica {
+
+    /** Todas as saídas do fluxo de inscrição voltam para esta mesma página. */
+    private static final String PAGINA_INSCRICAO = "publico/inscricao";
 
     private final ServicoDeEventos eventos;
     private final ServicoDeInscricoes inscricoes;
@@ -59,17 +67,17 @@ public class ControladorInscricaoPublica {
         public void setCidade(String cidade) { this.cidade = cidade; }
     }
 
-    @GetMapping("/{identificador}")
+    @GetMapping
     public String formulario(@PathVariable String identificador, Model modelo) {
         Evento evento = eventos.porIdentificadorPublico(identificador);
         prepararPagina(evento, modelo);
         if (!modelo.containsAttribute("formulario")) {
             modelo.addAttribute("formulario", new FormularioInscricao());
         }
-        return "publico/inscricao";
+        return PAGINA_INSCRICAO;
     }
 
-    @PostMapping("/{identificador}")
+    @PostMapping
     public String inscrever(@PathVariable String identificador,
                             @ModelAttribute("formulario") @Valid FormularioInscricao formulario,
                             BindingResult erros, Model modelo) {
@@ -77,7 +85,7 @@ public class ControladorInscricaoPublica {
         prepararPagina(evento, modelo);
 
         if (erros.hasErrors()) {
-            return "publico/inscricao";
+            return PAGINA_INSCRICAO;
         }
 
         try {
@@ -87,11 +95,11 @@ public class ControladorInscricaoPublica {
             return "redirect:/e/" + identificador + "/confirmado/" + inscricao.getCodigo();
         } catch (ServicoDeInscricoes.InscricaoRecusada recusa) {
             modelo.addAttribute("erroInscricao", recusa.getMessage());
-            return "publico/inscricao";
+            return PAGINA_INSCRICAO;
         }
     }
 
-    @GetMapping("/{identificador}/confirmado/{codigo}")
+    @GetMapping("/confirmado/{codigo}")
     public String confirmado(@PathVariable String identificador, @PathVariable String codigo,
                              Model modelo) {
         modelo.addAttribute("evento", eventos.porIdentificadorPublico(identificador));

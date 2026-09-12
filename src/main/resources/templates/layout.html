@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="pt-BR">
+<head th:fragment="cabecalho(titulo)">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title th:text="${titulo} + ' · Portaria'">Portaria</title>
+    <link rel="stylesheet" th:href="@{/css/app.css}">
+    <script th:src="@{/webjars/htmx.org/1.9.12/dist/htmx.min.js}" defer></script>
+</head>
+<body>
+
+<header class="topo" th:fragment="topo">
+    <a class="marca" th:href="@{/eventos}">Porta<span>ria</span></a>
+    <nav>
+        <a th:href="@{/eventos}">Eventos</a>
+        <span th:text="${#authentication?.name}">admin</span>
+        <form th:action="@{/logout}" method="post">
+            <button type="submit" class="botao-secundario">Sair</button>
+        </form>
+    </nav>
+</header>
+
+</body>
+</html>

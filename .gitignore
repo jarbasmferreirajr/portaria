@@ -1,0 +1,24 @@
+# Build
+target/
+
+# Banco H2 local
+*.mv.db
+*.trace.db
+
+# Logs
+*.log
+
+# IDEs
+.idea/
+*.iml
+*.ipr
+*.iws
+.classpath
+.project
+.settings/
+bin/
+nbproject/private/
+
+# Sistema
+Thumbs.db
+.DS_Store

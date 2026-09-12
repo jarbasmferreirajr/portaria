@@ -1,0 +1,160 @@
+/* Portaria :: folha de estilo única, sem framework.
+
+   Tema escuro de alto contraste. A tela de check-in é usada ao ar livre, à
+   noite, com o operador olhando de relance entre um participante e outro --
+   contraste alto e tipografia grande valem mais que sutileza visual aqui.
+
+   As propriedades e os seletores do CSS são vocabulário reservado da
+   linguagem; os nomes de classe e de variável estão em português. */
+
+:root {
+  --fundo:        #14161a;
+  --superficie:   #1d2026;
+  --superficie-2: #262a32;
+  --borda:        #333944;
+  --texto:        #e8eaed;
+  --texto-fraco:  #9aa1ad;
+  --destaque:     #f0a500;
+  --destaque-esc: #c78700;
+  --ok:           #2fbf71;
+  --alerta:       #f0a500;
+  --erro:         #e05263;
+  --raio:         10px;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: var(--fundo);
+  color: var(--texto);
+  font-family: "Segoe UI", system-ui, -apple-system, Roboto, Arial, sans-serif;
+  line-height: 1.5;
+}
+
+a { color: var(--destaque); }
+
+.container { max-width: 980px; margin: 0 auto; padding: 24px 20px 64px; }
+.container-estreito { max-width: 560px; margin: 0 auto; padding: 24px 20px 64px; }
+
+/* ---------- barra superior ---------- */
+.topo {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 16px; padding: 14px 20px;
+  background: var(--superficie); border-bottom: 1px solid var(--borda);
+}
+.marca {
+  font-weight: 700; font-size: 1.15rem; letter-spacing: .08em;
+  text-transform: uppercase; color: var(--texto); text-decoration: none;
+}
+.marca span { color: var(--destaque); }
+.topo nav { display: flex; align-items: center; gap: 18px; font-size: .9rem; }
+.topo nav a { color: var(--texto-fraco); text-decoration: none; }
+.topo nav a:hover { color: var(--texto); }
+.topo form { margin: 0; }
+
+h1 { font-size: 1.6rem; margin: 28px 0 4px; }
+h2 { font-size: 1.15rem; margin: 32px 0 12px; }
+.sub { color: var(--texto-fraco); margin: 0 0 24px; }
+
+/* ---------- cartões ---------- */
+.cartao {
+  background: var(--superficie); border: 1px solid var(--borda);
+  border-radius: var(--raio); padding: 20px; margin-bottom: 18px;
+}
+.cartao h2 { margin-top: 0; }
+
+.grade { display: grid; gap: 18px; }
+@media (min-width: 760px) { .grade-2 { grid-template-columns: 1fr 1fr; } }
+
+/* ---------- formulários ---------- */
+label { display: block; font-size: .82rem; color: var(--texto-fraco); margin-bottom: 5px; }
+input, textarea, select {
+  width: 100%; padding: 10px 12px; font-size: .95rem; font-family: inherit;
+  color: var(--texto); background: var(--superficie-2);
+  border: 1px solid var(--borda); border-radius: 8px;
+}
+input:focus, textarea:focus { outline: 2px solid var(--destaque); border-color: transparent; }
+.campo { margin-bottom: 14px; }
+.linha { display: grid; gap: 14px; }
+@media (min-width: 620px) { .linha-2 { grid-template-columns: 1fr 1fr; } }
+
+button, .botao {
+  display: inline-block; padding: 11px 20px; font-size: .95rem; font-weight: 600;
+  font-family: inherit; color: #1a1205; background: var(--destaque);
+  border: none; border-radius: 8px; cursor: pointer; text-decoration: none;
+}
+button:hover, .botao:hover { background: var(--destaque-esc); }
+.botao-secundario {
+  background: transparent; color: var(--texto);
+  border: 1px solid var(--borda);
+}
+.botao-secundario:hover { background: var(--superficie-2); }
+.erro-campo { color: var(--erro); font-size: .8rem; margin-top: 4px; }
+
+/* ---------- indicadores ---------- */
+.indicadores { display: flex; flex-wrap: wrap; gap: 12px; margin: 18px 0; }
+.indicador {
+  flex: 1 1 150px; background: var(--superficie); border: 1px solid var(--borda);
+  border-radius: var(--raio); padding: 16px 18px;
+}
+.indicador .valor { font-size: 2rem; font-weight: 700; line-height: 1.1; }
+.indicador .rotulo { color: var(--texto-fraco); font-size: .78rem; text-transform: uppercase; letter-spacing: .06em; }
+.indicador.destaque .valor { color: var(--destaque); }
+
+/* ---------- tabela ---------- */
+table { width: 100%; border-collapse: collapse; font-size: .9rem; }
+th, td { text-align: left; padding: 10px 8px; border-bottom: 1px solid var(--borda); }
+th { color: var(--texto-fraco); font-size: .75rem; text-transform: uppercase; letter-spacing: .06em; }
+tbody tr:hover { background: var(--superficie-2); }
+.vazio { color: var(--texto-fraco); font-style: italic; padding: 18px 0; }
+
+/* ---------- código de entrada ---------- */
+.codigo {
+  font-family: "Consolas", "SF Mono", ui-monospace, monospace;
+  letter-spacing: .18em; font-weight: 700;
+}
+.codigo-grande {
+  font-size: 2.6rem; color: var(--destaque); text-align: center;
+  padding: 22px; background: var(--superficie-2);
+  border: 1px dashed var(--destaque); border-radius: var(--raio); margin: 18px 0;
+}
+
+/* ---------- check-in ---------- */
+.entrada-codigo {
+  width: 100%; font-size: 2rem; text-align: center; padding: 18px;
+  letter-spacing: .3em; text-transform: uppercase;
+  font-family: "Consolas", "SF Mono", ui-monospace, monospace;
+}
+.resultado {
+  border-radius: var(--raio); padding: 18px 20px; margin: 16px 0;
+  border-left: 6px solid var(--borda); background: var(--superficie-2);
+}
+.resultado .titulo { font-size: 1.25rem; font-weight: 700; margin-bottom: 2px; }
+.resultado .detalhe { color: var(--texto-fraco); font-size: .9rem; }
+.resultado.ok     { border-left-color: var(--ok);     }
+.resultado.ok .titulo     { color: var(--ok); }
+.resultado.alerta { border-left-color: var(--alerta); }
+.resultado.alerta .titulo { color: var(--alerta); }
+.resultado.erro   { border-left-color: var(--erro);   }
+.resultado.erro .titulo   { color: var(--erro); }
+
+.aviso {
+  background: rgba(224, 82, 99, .12); border: 1px solid var(--erro);
+  color: #ffb3bd; padding: 12px 16px; border-radius: 8px; margin-bottom: 16px; font-size: .9rem;
+}
+.dica { color: var(--texto-fraco); font-size: .82rem; margin-top: 10px; }
+
+/* ---------- login ---------- */
+.tela-login { display: flex; align-items: center; justify-content: center; min-height: 100vh; padding: 20px; }
+.caixa-login { width: 100%; max-width: 380px; }
+.caixa-login .marca-login {
+  text-align: center; font-size: 1.8rem; font-weight: 700;
+  letter-spacing: .12em; text-transform: uppercase; margin-bottom: 6px;
+}
+.caixa-login .marca-login span { color: var(--destaque); }
+.caixa-login .lema { text-align: center; color: var(--texto-fraco); font-size: .85rem; margin-bottom: 26px; }
+.credenciais-demo {
+  margin-top: 18px; padding: 12px; text-align: center; font-size: .8rem;
+  color: var(--texto-fraco); background: var(--superficie-2); border-radius: 8px;
+}

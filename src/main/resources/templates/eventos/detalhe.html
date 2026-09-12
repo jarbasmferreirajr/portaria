@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="pt-BR">
+<head th:replace="~{layout :: cabecalho(${evento.nome})}"></head>
+<body>
+
+<header th:replace="~{layout :: topo}"></header>
+
+<div class="container">
+    <h1 th:text="${evento.nome}">Evento</h1>
+    <p class="sub">
+        <span th:text="${evento.local}">Local</span> &middot;
+        <span th:text="${#temporals.format(evento.inicio, 'dd/MM/yyyy ''às'' HH:mm')}">data</span>
+    </p>
+
+    <div class="indicadores">
+        <div class="indicador">
+            <div class="valor" th:text="${totalInscritos}">0</div>
+            <div class="rotulo">Inscritos</div>
+        </div>
+        <div class="indicador destaque">
+            <div class="valor" th:text="${totalPresentes}">0</div>
+            <div class="rotulo">Presentes</div>
+        </div>
+        <div class="indicador">
+            <div class="valor" th:text="${evento.capacidade}">0</div>
+            <div class="rotulo">Capacidade</div>
+        </div>
+    </div>
+
+    <p>
+        <a class="botao" th:href="@{/eventos/{id}/checkin(id=${evento.id})}">Abrir painel de portaria</a>
+    </p>
+
+    <div class="cartao">
+        <h2>Link público de inscrição</h2>
+        <p class="sub" style="margin-bottom:10px">Divulgue este endereço. Não exige login.</p>
+        <input type="text" readonly onclick="this.select()" th:value="${linkPublico}">
+        <p class="dica">
+            <a th:href="@{/e/{identificador}(identificador=${evento.identificadorPublico})}" target="_blank">Abrir a página de inscrição</a>
+        </p>
+    </div>
+
+    <div class="cartao">
+        <h2>Inscritos</h2>
+        <table th:if="${!#lists.isEmpty(inscricoes)}">
+            <thead>
+            <tr><th>Nome</th><th>Motoclube</th><th>Cidade</th><th>Código</th></tr>
+            </thead>
+            <tbody>
+            <tr th:each="i : ${inscricoes}">
+                <td>
+                    <span th:text="${i.nome}">Nome</span><br>
+                    <small style="color:var(--texto-fraco)" th:text="${i.email}">email</small>
+                </td>
+                <td th:text="${i.motoclube} ?: '—'">—</td>
+                <td th:text="${i.cidade} ?: '—'">—</td>
+                <td class="codigo" th:text="${i.codigo}">ABC123</td>
+            </tr>
+            </tbody>
+        </table>
+        <p class="vazio" th:if="${#lists.isEmpty(inscricoes)}">Nenhuma inscrição ainda.</p>
+    </div>
+</div>
+
+</body>
+</html>

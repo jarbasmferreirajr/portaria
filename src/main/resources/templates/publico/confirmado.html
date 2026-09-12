@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="pt-BR">
+<head th:replace="~{layout :: cabecalho('Inscrição confirmada')}"></head>
+<body>
+
+<header class="topo">
+    <span class="marca">Porta<span>ria</span></span>
+</header>
+
+<div class="container-estreito">
+    <h1>Inscrição confirmada</h1>
+    <p class="sub">
+        <span th:text="${inscricao.nome}">Nome</span>, sua vaga em
+        <strong th:text="${evento.nome}">evento</strong> está garantida.
+    </p>
+
+    <div class="cartao">
+        <p style="margin-top:0;color:var(--texto-fraco);font-size:.85rem;text-transform:uppercase;letter-spacing:.06em">
+            Seu código de entrada
+        </p>
+        <div class="codigo codigo-grande" th:text="${inscricao.codigo}">ABC123</div>
+        <p style="text-align:center;color:var(--texto-fraco);font-size:.9rem">
+            Apresente este código na portaria.<br>
+            Tire um print desta tela — ele funciona mesmo sem sinal de celular.
+        </p>
+    </div>
+
+    <div class="cartao">
+        <h2 style="margin-top:0">Detalhes do evento</h2>
+        <p style="margin:0">
+            <span th:text="${evento.local}">Local</span><br>
+            <span th:text="${#temporals.format(evento.inicio, 'dd/MM/yyyy ''às'' HH:mm')}">data</span>
+        </p>
+    </div>
+</div>
+
+</body>
+</html>

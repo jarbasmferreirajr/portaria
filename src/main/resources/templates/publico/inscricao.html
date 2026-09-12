@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="pt-BR">
+<head th:replace="~{layout :: cabecalho(${evento.nome})}"></head>
+<body>
+
+<header class="topo">
+    <span class="marca">Porta<span>ria</span></span>
+</header>
+
+<div class="container-estreito">
+    <h1 th:text="${evento.nome}">Evento</h1>
+    <p class="sub">
+        <span th:text="${evento.local}">Local</span><br>
+        <span th:text="${#temporals.format(evento.inicio, 'dd/MM/yyyy ''às'' HH:mm')}">data</span>
+    </p>
+
+    <p th:if="${evento.descricao}" th:text="${evento.descricao}"></p>
+
+    <div class="cartao">
+        <h2>Inscrição</h2>
+        <p class="sub" style="margin-bottom:16px">
+            <strong th:text="${vagasRestantes}">0</strong> vagas restantes de
+            <span th:text="${evento.capacidade}">0</span>.
+        </p>
+
+        <div class="aviso" th:if="${erroInscricao}" th:text="${erroInscricao}"></div>
+
+        <form th:action="@{/e/{identificador}(identificador=${evento.identificadorPublico})}" th:object="${formulario}" method="post">
+            <div class="campo">
+                <label for="nome">Nome completo *</label>
+                <input type="text" id="nome" th:field="*{nome}" autofocus>
+                <div class="erro-campo" th:if="${#fields.hasErrors('nome')}" th:errors="*{nome}"></div>
+            </div>
+            <div class="campo">
+                <label for="email">E-mail *</label>
+                <input type="email" id="email" th:field="*{email}">
+                <div class="erro-campo" th:if="${#fields.hasErrors('email')}" th:errors="*{email}"></div>
+            </div>
+            <div class="linha linha-2">
+                <div class="campo">
+                    <label for="telefone">Telefone</label>
+                    <input type="text" id="telefone" th:field="*{telefone}">
+                </div>
+                <div class="campo">
+                    <label for="cidade">Cidade</label>
+                    <input type="text" id="cidade" th:field="*{cidade}">
+                </div>
+            </div>
+            <div class="campo">
+                <label for="motoclube">Motoclube / grupo (opcional)</label>
+                <input type="text" id="motoclube" th:field="*{motoclube}">
+            </div>
+            <button type="submit" style="width:100%">Confirmar inscrição</button>
+            <p class="dica">
+                Coletamos apenas o necessário para organizar a entrada no evento.
+            </p>
+        </form>
+    </div>
+</div>
+
+</body>
+</html>

@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="pt-BR">
+<head th:replace="~{layout :: cabecalho('Eventos')}"></head>
+<body>
+
+<header th:replace="~{layout :: topo}"></header>
+
+<div class="container">
+    <h1>Eventos</h1>
+    <p class="sub">Cada evento tem um link público de inscrição e um painel de portaria.</p>
+
+    <div class="grade grade-2">
+        <div>
+            <div class="cartao">
+                <h2>Meus eventos</h2>
+                <table th:if="${!#lists.isEmpty(eventos)}">
+                    <thead>
+                    <tr><th>Evento</th><th>Início</th><th>Vagas</th></tr>
+                    </thead>
+                    <tbody>
+                    <tr th:each="e : ${eventos}">
+                        <td>
+                            <a th:href="@{/eventos/{id}(id=${e.id})}" th:text="${e.nome}">Nome</a><br>
+                            <small style="color:var(--texto-fraco)" th:text="${e.local}">Local</small>
+                        </td>
+                        <td th:text="${#temporals.format(e.inicio, 'dd/MM/yyyy HH:mm')}">data</td>
+                        <td th:text="${e.capacidade}">0</td>
+                    </tr>
+                    </tbody>
+                </table>
+                <p class="vazio" th:if="${#lists.isEmpty(eventos)}">
+                    Nenhum evento cadastrado ainda. Crie o primeiro ao lado.
+                </p>
+            </div>
+        </div>
+
+        <div>
+            <div class="cartao">
+                <h2>Novo evento</h2>
+                <form th:action="@{/eventos}" th:object="${formulario}" method="post">
+                    <div class="campo">
+                        <label for="nome">Nome do evento</label>
+                        <input type="text" id="nome" th:field="*{nome}" placeholder="3º Encontro de Motociclistas">
+                        <div class="erro-campo" th:if="${#fields.hasErrors('nome')}" th:errors="*{nome}"></div>
+                    </div>
+                    <div class="campo">
+                        <label for="local">Local</label>
+                        <input type="text" id="local" th:field="*{local}" placeholder="Parque de Eventos - Gaspar/SC">
+                        <div class="erro-campo" th:if="${#fields.hasErrors('local')}" th:errors="*{local}"></div>
+                    </div>
+                    <div class="linha linha-2">
+                        <div class="campo">
+                            <label for="inicio">Início</label>
+                            <input type="datetime-local" id="inicio" th:field="*{inicio}">
+                            <div class="erro-campo" th:if="${#fields.hasErrors('inicio')}" th:errors="*{inicio}"></div>
+                        </div>
+                        <div class="campo">
+                            <label for="fim">Fim (opcional)</label>
+                            <input type="datetime-local" id="fim" th:field="*{fim}">
+                        </div>
+                    </div>
+                    <div class="campo">
+                        <label for="capacidade">Capacidade</label>
+                        <input type="number" id="capacidade" th:field="*{capacidade}" min="1" placeholder="300">
+                        <div class="erro-campo" th:if="${#fields.hasErrors('capacidade')}" th:errors="*{capacidade}"></div>
+                    </div>
+                    <div class="campo">
+                        <label for="descricao">Descrição (opcional)</label>
+                        <textarea id="descricao" rows="3" th:field="*{descricao}"></textarea>
+                    </div>
+                    <button type="submit">Criar evento</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+</body>
+</html>

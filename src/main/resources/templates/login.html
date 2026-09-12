@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="pt-BR">
+<head th:replace="~{layout :: cabecalho('Entrar')}"></head>
+<body>
+
+<div class="tela-login">
+    <div class="caixa-login">
+        <div class="marca-login">Porta<span>ria</span></div>
+        <p class="lema">Controle de entrada para eventos presenciais</p>
+
+        <div class="cartao">
+            <div class="aviso" th:if="${param.error}">
+                Usuário ou senha inválidos.
+            </div>
+            <div class="aviso" th:if="${param.saiu}"
+                 style="background:rgba(47,191,113,.12);border-color:var(--ok);color:#a9e9c6;">
+                Sessão encerrada com segurança.
+            </div>
+
+            <form th:action="@{/login}" method="post">
+                <div class="campo">
+                    <label for="username">Usuário</label>
+                    <input type="text" id="username" name="username" autocomplete="username" autofocus required>
+                </div>
+                <div class="campo">
+                    <label for="password">Senha</label>
+                    <input type="password" id="password" name="password" autocomplete="current-password" required>
+                </div>
+                <button type="submit" style="width:100%">Entrar</button>
+            </form>
+
+            <div class="credenciais-demo">
+                Acesso de demonstração &middot; <strong>admin</strong> / <strong>portaria123</strong>
+            </div>
+        </div>
+    </div>
+</div>
+
+</body>
+</html>

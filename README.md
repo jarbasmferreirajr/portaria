@@ -47,7 +47,7 @@ evento fala "fazer o check-in", não "registrar a presença".
 
 ## Como rodar
 
-Requisito único: **JDK 21**. Não precisa instalar banco de dados.
+Requisito único: **JDK 25**. Não precisa instalar banco de dados.
 
 ```bash
 mvn spring-boot:run
@@ -114,6 +114,39 @@ teclado (HID): digitam o código e pressionam Enter. O campo de digitação manu
 **Migrações com Flyway, em SQL padrão.** O esquema é criado exclusivamente pelas
 migrações e o Hibernate roda em `validate`. O SQL evita tipos proprietários, de
 modo que a mesma migração roda no H2 hoje e no PostgreSQL depois.
+
+---
+
+## Atualização para Spring Boot 4 e Java 25
+
+O projeto nasceu em Spring Boot 3.5 com Java 21. O suporte OSS do 3.5 encerrou em
+30/06/2026, e a entrega final vai até meados de 2027 — passar um ano sem correção
+de segurança não se sustentava. A migração foi feita em 12/09/2026, para **Spring
+Boot 4.1.1, Spring Framework 7 e Hibernate 7**.
+
+**Java 25, e não 26.** O 25 é LTS; o 26 é *feature release*, com cerca de seis
+meses de vida, e seria substituído pelo 27 poucas semanas depois. O alvo foi
+escolhido pelo horizonte do projeto, não pelo número maior.
+
+Três mudanças exigiram intervenção, e nenhuma delas era evidente:
+
+**A integração Thymeleaf + Spring Security deixou de ser um módulo à parte.** O
+repositório `thymeleaf-extras-springsecurity` foi arquivado em abril de 2026 e o
+código absorvido pelo Thymeleaf 3.2. A dependência sai do `pom.xml` e o
+`${#authentication}` continua funcionando, agora vindo do
+`spring-boot-starter-thymeleaf`.
+
+**No Boot 4, o starter é o contrato.** As autoconfigurações foram retiradas do jar
+monolítico `spring-boot-autoconfigure` e distribuídas em módulos por tecnologia.
+Com apenas `flyway-core` no classpath, a biblioteca existe mas a ligação com o
+Spring não: as migrações não rodam, sem log e sem erro — e o Hibernate falha
+depois, reclamando de uma tabela ausente. A troca por `spring-boot-starter-flyway`
+resolve. Módulo de autoconfiguração ausente falha igual a biblioteca ausente: em
+silêncio.
+
+**`AntPathRequestMatcher` foi removido no Spring Security 7**, substituído por
+`PathPatternRequestMatcher`. O `ConfiguracaoSeguranca` já usa o novo, declarando
+um `Builder` uma vez e reaproveitando nos três pontos de rota.
 
 ---
 

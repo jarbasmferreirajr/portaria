@@ -1,8 +1,18 @@
 package br.com.portaria.checkin;
 
-import br.com.portaria.inscricao.Inscricao;
-import jakarta.persistence.*;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
+
+import br.com.portaria.inscricao.Inscricao;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.OneToOne;
+import jakarta.persistence.Table;
 
 /**
  * O registro de que uma pessoa inscrita efetivamente entrou no evento.
@@ -14,6 +24,13 @@ import java.time.LocalDateTime;
 @Table(name = "check_in")
 public class CheckIn {
 
+    /**
+     * O evento acontece em horário de Brasília, mas o servidor pode não estar
+     * nele -- plataformas de implantação costumam rodar em UTC. Sem o fuso
+     * explícito, um check-in das 20h seria gravado como 23h.
+     */
+    private static final ZoneId FUSO = ZoneId.of("America/Sao_Paulo");
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -23,7 +40,7 @@ public class CheckIn {
     private Inscricao inscricao;
 
     @Column(name = "registrado_em", nullable = false)
-    private LocalDateTime registradoEm = LocalDateTime.now();
+    private LocalDateTime registradoEm = LocalDateTime.now(FUSO);
 
     @Column(name = "registrado_por", nullable = false, length = 80)
     private String registradoPor;
@@ -35,7 +52,7 @@ public class CheckIn {
     public CheckIn(Inscricao inscricao, String registradoPor) {
         this.inscricao = inscricao;
         this.registradoPor = registradoPor;
-        this.registradoEm = LocalDateTime.now();
+        this.registradoEm = LocalDateTime.now(FUSO);
     }
 
     public Long getId() { return id; }

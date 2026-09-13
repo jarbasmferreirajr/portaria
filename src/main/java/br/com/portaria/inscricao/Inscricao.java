@@ -3,6 +3,7 @@ package br.com.portaria.inscricao;
 import br.com.portaria.evento.Evento;
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 
 /**
  * A inscrição de uma pessoa em um evento.
@@ -14,6 +15,10 @@ import java.time.LocalDateTime;
 @Entity
 @Table(name = "inscricao")
 public class Inscricao {
+
+    /** Horário de Brasília: o servidor de implantação costuma rodar em UTC. */
+    private static final ZoneId FUSO = ZoneId.of("America/Sao_Paulo");
+
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -42,7 +47,7 @@ public class Inscricao {
     private String codigo;
 
     @Column(name = "criado_em", nullable = false)
-    private LocalDateTime criadoEm = LocalDateTime.now();
+    private LocalDateTime criadoEm = LocalDateTime.now(FUSO);
 
     protected Inscricao() {
         // Exigido pela JPA; não usar diretamente.
@@ -57,7 +62,7 @@ public class Inscricao {
         this.motoclube = motoclube;
         this.cidade = cidade;
         this.codigo = codigo;
-        this.criadoEm = LocalDateTime.now();
+        this.criadoEm = LocalDateTime.now(FUSO);
     }
 
     public Long getId() { return id; }

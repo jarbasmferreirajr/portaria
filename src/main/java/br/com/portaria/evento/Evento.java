@@ -2,6 +2,7 @@ package br.com.portaria.evento;
 
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 
 /**
  * Um evento presencial: encontro, festival, palestra.
@@ -12,6 +13,10 @@ import java.time.LocalDateTime;
 @Entity
 @Table(name = "evento")
 public class Evento {
+
+    /** Horário de Brasília: o servidor de implantação costuma rodar em UTC. */
+    private static final ZoneId FUSO = ZoneId.of("America/Sao_Paulo");
+
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -39,7 +44,7 @@ public class Evento {
     private String identificadorPublico;
 
     @Column(name = "criado_em", nullable = false)
-    private LocalDateTime criadoEm = LocalDateTime.now();
+    private LocalDateTime criadoEm = LocalDateTime.now(FUSO);
 
     protected Evento() {
         // Exigido pela JPA; não usar diretamente.
@@ -54,7 +59,7 @@ public class Evento {
         this.fim = fim;
         this.capacidade = capacidade;
         this.identificadorPublico = identificadorPublico;
-        this.criadoEm = LocalDateTime.now();
+        this.criadoEm = LocalDateTime.now(FUSO);
     }
 
     // Os prefixos get/set são exigidos pela convenção JavaBean, que a JPA e o

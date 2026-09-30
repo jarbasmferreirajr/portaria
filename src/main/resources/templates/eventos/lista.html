@@ -20,7 +20,8 @@
                     <tbody>
                     <tr th:each="e : ${eventos}">
                         <td>
-                            <a th:href="@{/eventos/{id}(id=${e.id})}" th:text="${e.nome}">Nome</a><br>
+                            <a th:href="@{/eventos/{id}(id=${e.id})}" th:text="${e.nome}">Nome</a>
+                            <span class="etiqueta" th:if="${e.encerrado}">encerrado</span><br>
                             <small style="color:var(--texto-fraco)" th:text="${e.local}">Local</small>
                         </td>
                         <td th:text="${#temporals.format(e.inicio, 'dd/MM/yyyy HH:mm')}">data</td>
@@ -36,7 +37,7 @@
 
         <div>
             <div class="cartao">
-                <h2>Novo evento</h2>
+                <h2>Cadastrar Novo Evento</h2>
                 <form th:action="@{/eventos}" th:object="${formulario}" method="post">
                     <div class="campo">
                         <label for="nome">Nome do evento</label>
@@ -68,7 +69,7 @@
                         <label for="descricao">Descrição (opcional)</label>
                         <textarea id="descricao" rows="3" th:field="*{descricao}"></textarea>
                     </div>
-                    <button type="submit">Criar evento</button>
+                    <button type="submit">Cadastrar evento</button>
                 </form>
             </div>
         </div>

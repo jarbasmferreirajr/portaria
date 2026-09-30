@@ -27,9 +27,50 @@
         </div>
     </div>
 
-    <p>
-        <a class="botao" th:href="@{/eventos/{id}/checkin(id=${evento.id})}">Abrir painel de portaria</a>
-    </p>
+    <div th:if="${sucesso}" class="aviso"
+         style="background:rgba(47,191,113,.12);border-color:var(--ok);color:#a9e9c6;"
+         th:text="${sucesso}"></div>
+
+    <div th:if="${evento.encerrado}" class="aviso"
+         style="background:rgba(240,165,0,.12);border-color:var(--alerta);color:#f3d08a;">
+        Inscrições encerradas em
+        <span th:text="${#temporals.format(evento.encerradoEm, 'dd/MM/yyyy ''às'' HH:mm')}">data</span>.
+        O painel de portaria continua funcionando para quem já se inscreveu, e as
+        inscrições podem ser reabertas a qualquer momento: a inscrição tardia no
+        dia do evento pode ser feita conforme os critérios facultativos da
+        organização de cada tipo de evento. A decisão é inteiramente da
+        organização do evento.
+    </div>
+
+    <!-- Ação principal do sistema: é ela que o operador procura no portão, à
+         noite, no celular e com a fila andando. Recebe tamanho, ícone e a linha
+         inteira; as ações administrativas ficam abaixo, visivelmente menores. -->
+    <a class="acao-principal" th:href="@{/eventos/{id}/checkin(id=${evento.id})}">
+        <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+            <path d="M3 8V5.5A1.5 1.5 0 0 1 4.5 4H7"/>
+            <path d="M21 8V5.5A1.5 1.5 0 0 0 19.5 4H17"/>
+            <path d="M3 16v2.5A1.5 1.5 0 0 0 4.5 20H7"/>
+            <path d="M21 16v2.5A1.5 1.5 0 0 1 19.5 20H17"/>
+            <path d="M2.5 12h19"/>
+        </svg>
+        <span>
+            <strong>Abrir painel de portaria</strong>
+            <small>Registrar a entrada dos participantes</small>
+        </span>
+    </a>
+
+    <div class="acoes-secundarias">
+        <a th:href="@{/eventos/{id}/editar(id=${evento.id})}">Editar evento</a>
+
+        <form th:unless="${evento.encerrado}" th:action="@{/eventos/{id}/encerrar(id=${evento.id})}"
+              method="post">
+            <button type="submit">Encerrar inscrições</button>
+        </form>
+        <form th:if="${evento.encerrado}" th:action="@{/eventos/{id}/reabrir(id=${evento.id})}"
+              method="post">
+            <button type="submit">Reabrir inscrições</button>
+        </form>
+    </div>
 
     <div class="cartao">
         <h2>Link público de inscrição</h2>

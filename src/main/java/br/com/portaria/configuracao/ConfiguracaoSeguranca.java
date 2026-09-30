@@ -37,8 +37,10 @@ public class ConfiguracaoSeguranca {
                 // /webjars/** precisa entrar aqui porque a própria tela de login
                 // carrega o htmx dali; um 401 nesse script faz o navegador abrir
                 // a caixa nativa de autenticação por cima da página.
-                .requestMatchers("/e/**", "/login", "/css/**", "/js/**",
-                                 "/webjars/**", "/favicon.ico").permitAll()
+                // Quem esqueceu a senha não consegue autenticar-se: as duas
+                // rotas da recuperação precisam ser públicas por definição.
+                .requestMatchers("/e/**", "/login", "/recuperar-senha", "/redefinir-senha",
+                                 "/css/**", "/js/**", "/webjars/**", "/favicon.ico").permitAll()
                 .requestMatchers(caminho.matcher("/h2-console/**")).permitAll()
                 .anyRequest().authenticated()
             )

@@ -12,6 +12,10 @@
             <div class="aviso" th:if="${param.error}">
                 Usuário ou senha inválidos.
             </div>
+            <div class="aviso" th:if="${param.senhaRedefinida}"
+                 style="background:rgba(47,191,113,.12);border-color:var(--ok);color:#a9e9c6;">
+                Senha redefinida. Entre com a senha nova.
+            </div>
             <div class="aviso" th:if="${param.senhaAlterada}"
                  style="background:rgba(47,191,113,.12);border-color:var(--ok);color:#a9e9c6;">
                 Senha alterada. Entre novamente com a nova senha.
@@ -36,6 +40,9 @@
                     <input type="password" id="password" name="password" autocomplete="current-password" required>
                 </div>
                 <button type="submit" style="width:100%">Entrar</button>
+                <p class="dica" style="text-align:center">
+                    <a th:href="@{/recuperar-senha}">Esqueci minha senha</a>
+                </p>
             </form>
 
             <div class="credenciais-demo">

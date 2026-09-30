@@ -16,20 +16,42 @@
     <div class="grade grade-2">
 
         <div class="cartao">
-            <h2 style="margin-top:0">Dados pessoais</h2>
+            <h2 style="margin-top:0">Dados do organizador</h2>
+            <p class="sub" style="margin-bottom:16px">
+                Nome e e-mail são obrigatórios. O restante é contato para quem
+                tiver dúvida sobre o evento.
+            </p>
 
             <div class="aviso" th:if="${erroDados}" th:text="${erroDados}"></div>
 
             <form th:action="@{/conta/dados}" th:object="${formularioDados}" method="post">
                 <div class="campo">
-                    <label for="nome">Nome</label>
+                    <label for="nome">Nome *</label>
                     <input type="text" id="nome" th:field="*{nome}">
                     <div class="erro-campo" th:if="${#fields.hasErrors('nome')}" th:errors="*{nome}"></div>
                 </div>
                 <div class="campo">
-                    <label for="email">E-mail</label>
+                    <label for="email">E-mail *</label>
                     <input type="email" id="email" th:field="*{email}">
                     <div class="erro-campo" th:if="${#fields.hasErrors('email')}" th:errors="*{email}"></div>
+                </div>
+                <div class="campo">
+                    <label for="telefone">Telefone</label>
+                    <input type="tel" id="telefone" th:field="*{telefone}"
+                           placeholder="(47) 99999-0000">
+                    <div class="erro-campo" th:if="${#fields.hasErrors('telefone')}" th:errors="*{telefone}"></div>
+                </div>
+                <div class="campo">
+                    <label for="endereco">Endereço</label>
+                    <input type="text" id="endereco" th:field="*{endereco}"
+                           placeholder="Rua, número, bairro — cidade/UF">
+                    <div class="erro-campo" th:if="${#fields.hasErrors('endereco')}" th:errors="*{endereco}"></div>
+                </div>
+                <div class="campo">
+                    <label for="site">Site ou rede social</label>
+                    <input type="text" id="site" th:field="*{site}"
+                           placeholder="instagram.com/seumotoclube">
+                    <div class="erro-campo" th:if="${#fields.hasErrors('site')}" th:errors="*{site}"></div>
                 </div>
                 <button type="submit">Salvar dados</button>
                 <p class="dica">

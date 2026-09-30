@@ -38,7 +38,8 @@ public class ControladorDaConta {
         this.usuarios = usuarios;
     }
 
-    public static class FormularioDadosPessoais {
+    /** Dados de contato do organizador. Só nome e e-mail são obrigatórios. */
+    public static class FormularioDadosDoOrganizador {
 
         @NotBlank(message = "Informe seu nome")
         @Size(max = 150)
@@ -49,10 +50,25 @@ public class ControladorDaConta {
         @Size(max = 150)
         private String email;
 
+        @Size(max = 30, message = "Telefone longo demais")
+        private String telefone;
+
+        @Size(max = 200, message = "Endereço longo demais")
+        private String endereco;
+
+        @Size(max = 150, message = "Endereço do site longo demais")
+        private String site;
+
         public String getNome() { return nome; }
         public void setNome(String nome) { this.nome = nome; }
         public String getEmail() { return email; }
         public void setEmail(String email) { this.email = email; }
+        public String getTelefone() { return telefone; }
+        public void setTelefone(String telefone) { this.telefone = telefone; }
+        public String getEndereco() { return endereco; }
+        public void setEndereco(String endereco) { this.endereco = endereco; }
+        public String getSite() { return site; }
+        public void setSite(String site) { this.site = site; }
     }
 
     public static class FormularioSenha {
@@ -83,7 +99,7 @@ public class ControladorDaConta {
     }
 
     @PostMapping("/dados")
-    public String alterarDados(@ModelAttribute("formularioDados") @Valid FormularioDadosPessoais formulario,
+    public String alterarDados(@ModelAttribute("formularioDados") @Valid FormularioDadosDoOrganizador formulario,
                                BindingResult erros, Principal autenticado, Model modelo,
                                HttpServletRequest requisicao, HttpServletResponse resposta,
                                RedirectAttributes atributos) {
@@ -98,7 +114,9 @@ public class ControladorDaConta {
         boolean mudouDeEmail = !Usuario.normalizarEmail(formulario.getEmail()).equals(usuario.getEmail());
 
         try {
-            usuarios.alterarDadosPessoais(autenticado.getName(), formulario.getNome(), formulario.getEmail());
+            usuarios.alterarDados(autenticado.getName(), new DadosDoOrganizador(
+                    formulario.getNome(), formulario.getEmail(), formulario.getTelefone(),
+                    formulario.getEndereco(), formulario.getSite()));
         } catch (ServicoDeUsuarios.OperacaoRecusada recusa) {
             modelo.addAttribute("erroDados", recusa.getMessage());
             preencher(modelo, usuario);
@@ -113,7 +131,7 @@ public class ControladorDaConta {
             return "redirect:/login?emailAlterado";
         }
 
-        atributos.addFlashAttribute("sucesso", "Seus dados foram atualizados.");
+        atributos.addFlashAttribute("sucesso", "Dados do organizador atualizados.");
         return "redirect:/conta";
     }
 
@@ -160,9 +178,12 @@ public class ControladorDaConta {
         modelo.addAttribute("usuario", usuario);
 
         if (!modelo.containsAttribute("formularioDados")) {
-            FormularioDadosPessoais dados = new FormularioDadosPessoais();
+            FormularioDadosDoOrganizador dados = new FormularioDadosDoOrganizador();
             dados.setNome(usuario.getNome());
             dados.setEmail(usuario.getEmail());
+            dados.setTelefone(usuario.getTelefone());
+            dados.setEndereco(usuario.getEndereco());
+            dados.setSite(usuario.getSite());
             modelo.addAttribute("formularioDados", dados);
         }
         if (!modelo.containsAttribute("formularioSenha")) {

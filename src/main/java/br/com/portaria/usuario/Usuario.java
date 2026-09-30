@@ -38,6 +38,16 @@ public class Usuario {
     @Column(name = "senha_hash", nullable = false, length = 100)
     private String senhaHash;
 
+    @Column(length = 30)
+    private String telefone;
+
+    @Column(length = 200)
+    private String endereco;
+
+    /** Página do motoclube, da organização ou do próprio evento. */
+    @Column(length = 150)
+    private String site;
+
     @Column(nullable = false, length = 30)
     private String papel;
 
@@ -68,9 +78,22 @@ public class Usuario {
     // Mudanças de estado passam por métodos com nome de intenção, e não por
     // setters genéricos: quem lê o código vê o que a operação significa.
 
-    public void alterarDadosPessoais(String nome, String email) {
+    public void alterarDados(String nome, String email, String telefone,
+                             String endereco, String site) {
         this.nome = nome;
         this.email = normalizarEmail(email);
+        this.telefone = vazioComoNulo(telefone);
+        this.endereco = vazioComoNulo(endereco);
+        this.site = vazioComoNulo(site);
+    }
+
+    /** Campo opcional deixado em branco vira nulo, e não string vazia. */
+    private static String vazioComoNulo(String valor) {
+        if (valor == null) {
+            return null;
+        }
+        String limpo = valor.trim();
+        return limpo.isEmpty() ? null : limpo;
     }
 
     public void trocarSenha(String novoHash) {
@@ -85,6 +108,9 @@ public class Usuario {
     public String getNome() { return nome; }
     public String getEmail() { return email; }
     public String getSenhaHash() { return senhaHash; }
+    public String getTelefone() { return telefone; }
+    public String getEndereco() { return endereco; }
+    public String getSite() { return site; }
     public String getPapel() { return papel; }
     public boolean isAtivo() { return ativo; }
     public LocalDateTime getCriadoEm() { return criadoEm; }

@@ -109,10 +109,15 @@ class ServicoDeUsuariosTest {
         Usuario usuario = usuarioSalvo("jarbas@exemplo.com", "segredo123");
         when(repositorio.findByEmail("jarbas@exemplo.com")).thenReturn(Optional.of(usuario));
 
-        servico.alterarDadosPessoais("jarbas@exemplo.com", "Jarbas Jr.", "Jarbas@Exemplo.com");
+        servico.alterarDados("jarbas@exemplo.com", new DadosDoOrganizador(
+                "Jarbas Jr.", "Jarbas@Exemplo.com", "(47) 99999-0000", "Rua das Motos, 10", "  "));
 
         assertThat(usuario.getNome()).isEqualTo("Jarbas Jr.");
         assertThat(usuario.getEmail()).isEqualTo("jarbas@exemplo.com");
+        assertThat(usuario.getTelefone()).isEqualTo("(47) 99999-0000");
+        assertThat(usuario.getEndereco()).isEqualTo("Rua das Motos, 10");
+        // Campo opcional em branco não vira string vazia no banco.
+        assertThat(usuario.getSite()).isNull();
         verify(repositorio, never()).existsByEmail(anyString());
     }
 }

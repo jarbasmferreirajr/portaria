@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="pt-BR">
+<head th:replace="~{layout :: cabecalho('Recuperar senha')}"></head>
+<body>
+
+<div class="tela-login">
+    <div class="caixa-login">
+        <div class="marca-login">Porta<span>ria</span></div>
+        <p class="lema">Recuperação de acesso</p>
+
+        <div class="cartao">
+
+            <div th:if="${param.enviado}" class="aviso"
+                 style="background:rgba(47,191,113,.12);border-color:var(--ok);color:#a9e9c6;">
+                Se este e-mail estiver cadastrado, enviamos um link para redefinir a senha.
+                Verifique sua caixa de entrada.
+            </div>
+
+            <form th:unless="${param.enviado}" th:action="@{/recuperar-senha}"
+                  th:object="${formulario}" method="post">
+                <p class="sub" style="margin-top:0">
+                    Informe o e-mail da sua conta. Enviaremos um link para você
+                    escolher uma senha nova.
+                </p>
+                <div class="campo">
+                    <label for="email">E-mail</label>
+                    <input type="email" id="email" th:field="*{email}"
+                           placeholder="voce@exemplo.com" autofocus>
+                    <div class="erro-campo" th:if="${#fields.hasErrors('email')}" th:errors="*{email}"></div>
+                </div>
+                <button type="submit" style="width:100%">Enviar link de recuperação</button>
+            </form>
+
+            <p class="dica" style="text-align:center">
+                <a th:href="@{/login}">Voltar ao login</a>
+            </p>
+        </div>
+    </div>
+</div>
+
+</body>
+</html>

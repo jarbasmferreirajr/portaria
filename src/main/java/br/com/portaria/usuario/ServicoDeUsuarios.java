@@ -44,9 +44,9 @@ public class ServicoDeUsuarios {
     }
 
     @Transactional
-    public Usuario alterarDadosPessoais(String emailAtual, String novoNome, String novoEmail) {
+    public Usuario alterarDados(String emailAtual, DadosDoOrganizador dados) {
         Usuario usuario = porEmail(emailAtual);
-        String normalizado = Usuario.normalizarEmail(novoEmail);
+        String normalizado = Usuario.normalizarEmail(dados.email());
 
         // Só é conflito se o e-mail já pertence a OUTRA conta; manter o próprio
         // e-mail ao alterar apenas o nome precisa continuar sendo permitido.
@@ -55,7 +55,8 @@ public class ServicoDeUsuarios {
             throw new OperacaoRecusada("Já existe uma conta com este e-mail.");
         }
 
-        usuario.alterarDadosPessoais(novoNome, normalizado);
+        usuario.alterarDados(dados.nome(), normalizado, dados.telefone(),
+                dados.endereco(), dados.site());
         return usuarios.save(usuario);
     }
 

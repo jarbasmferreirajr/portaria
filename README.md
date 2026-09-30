@@ -166,6 +166,27 @@ E no `pom.xml`, trocar a dependência `com.h2database:h2` por
 
 ---
 
+## Levantado com o domínio
+
+Registro de uma observação feita por quem organiza e frequenta encontros de
+motoclube, e que corrige uma premissa do projeto:
+
+> Encontros de motoclube costumam flexibilizar bastante as inscrições tardias —
+> para o dia do evento, ou para o segundo dia. Varia com a organização, mas é
+> normal.
+
+**Consequência 1.** O encerramento de inscrições não é um estado final. É um
+interruptor de rotina: fecha-se na véspera para fechar a contagem do kit e
+reabre-se no sábado quando aparece gente no portão. Por isso `encerrar` e
+`reabrir` são simétricos, e o evento encerrado continua editável.
+
+**Consequência 2.** Inscrever alguém no próprio portão deixa de ser recurso
+secundário e passa a ser caminho principal. Foi promovido ao topo do backlog.
+
+**Consequência 3.** Em evento de dois dias, uma presença por inscrição não
+basta: interessa saber quem esteve no sábado e quem esteve no domingo. Isso
+reabre a discussão de check-in por dia ou por atividade, e não apenas por evento.
+
 ## Backlog priorizado
 
 Deliberadamente fora desta entrega. Cada item tem justificativa de domínio — não
@@ -173,7 +194,8 @@ Deliberadamente fora desta entrega. Cada item tem justificativa de domínio — 
 
 | Item | Por quê |
 |---|---|
-| **Cadastro na portaria** | Metade do público de encontro de motoclube chega sem inscrição prévia. |
+| **Cadastro na portaria** *(prioridade máxima)* | Inscrição tardia no dia do evento é prática comum, não exceção. Hoje quem chega sem inscrição não entra no sistema. |
+| **Check-in por dia de evento** | Encontro de dois dias precisa distinguir quem veio no sábado de quem veio no domingo. Uma presença por inscrição não representa isso. |
 | **Check-in coletivo** | Caravana chega com 12 pessoas; a fila não pode parar. |
 | **Fila offline** (IndexedDB + código assinado por HMAC) | Encontro acontece em pátio e área rural, onde não há sinal confiável. |
 | **QR code** | Camada sobre o código curto. Exige HTTPS: a câmera do navegador só funciona em contexto seguro. |

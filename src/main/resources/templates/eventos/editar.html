@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="pt-BR">
+<head th:replace="~{layout :: cabecalho('Editar evento')}"></head>
+<body>
+
+<header th:replace="~{layout :: topo}"></header>
+
+<div class="container-estreito">
+    <h1>Editar evento</h1>
+    <p class="sub" th:text="${evento.nome}">Nome atual</p>
+
+    <div th:if="${evento.encerrado}" class="aviso"
+         style="background:rgba(240,165,0,.12);border-color:var(--alerta);color:#f3d08a;">
+        Este evento está com as <strong>inscrições encerradas</strong>. A edição
+        continua permitida — o evento ainda vai acontecer, e local, horário e
+        descrição podem precisar de ajuste.
+    </div>
+
+    <div class="aviso" th:if="${erroEdicao}" th:text="${erroEdicao}"></div>
+
+    <div class="cartao">
+        <form th:action="@{/eventos/{id}/editar(id=${evento.id})}" th:object="${formulario}" method="post">
+            <div class="campo">
+                <label for="nome">Nome do evento</label>
+                <input type="text" id="nome" th:field="*{nome}">
+                <div class="erro-campo" th:if="${#fields.hasErrors('nome')}" th:errors="*{nome}"></div>
+            </div>
+            <div class="campo">
+                <label for="local">Local</label>
+                <input type="text" id="local" th:field="*{local}">
+                <div class="erro-campo" th:if="${#fields.hasErrors('local')}" th:errors="*{local}"></div>
+            </div>
+            <div class="linha linha-2">
+                <div class="campo">
+                    <label for="inicio">Início</label>
+                    <input type="datetime-local" id="inicio" th:field="*{inicio}">
+                    <div class="erro-campo" th:if="${#fields.hasErrors('inicio')}" th:errors="*{inicio}"></div>
+                </div>
+                <div class="campo">
+                    <label for="fim">Fim (opcional)</label>
+                    <input type="datetime-local" id="fim" th:field="*{fim}">
+                </div>
+            </div>
+            <div class="campo">
+                <label for="capacidade">Capacidade</label>
+                <input type="number" id="capacidade" th:field="*{capacidade}" min="1">
+                <div class="erro-campo" th:if="${#fields.hasErrors('capacidade')}" th:errors="*{capacidade}"></div>
+            </div>
+            <div class="campo">
+                <label for="descricao">Descrição (opcional)</label>
+                <textarea id="descricao" rows="4" th:field="*{descricao}"></textarea>
+            </div>
+
+            <button type="submit">Salvar alterações</button>
+            <a class="botao botao-secundario" th:href="@{/eventos/{id}(id=${evento.id})}">Cancelar</a>
+
+            <p class="dica">
+                O endereço público do evento não muda ao editar o nome — ele já foi
+                divulgado, e alterá-lo quebraria os links já compartilhados.
+            </p>
+        </form>
+    </div>
+</div>
+
+</body>
+</html>

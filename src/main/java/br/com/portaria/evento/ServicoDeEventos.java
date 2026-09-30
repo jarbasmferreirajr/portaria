@@ -15,9 +15,18 @@ import java.util.Locale;
 public class ServicoDeEventos {
 
     private final RepositorioDeEventos eventos;
+    private final ContagemDeInscritos inscritos;
 
-    public ServicoDeEventos(RepositorioDeEventos eventos) {
+    public ServicoDeEventos(RepositorioDeEventos eventos, ContagemDeInscritos inscritos) {
         this.eventos = eventos;
+        this.inscritos = inscritos;
+    }
+
+    /** Alteração recusada por uma regra de negócio, não por falha técnica. */
+    public static class AlteracaoRecusada extends RuntimeException {
+        public AlteracaoRecusada(String mensagem) {
+            super(mensagem);
+        }
     }
 
     @Transactional(readOnly = true)
@@ -42,6 +51,47 @@ public class ServicoDeEventos {
                         LocalDateTime fim, Integer capacidade) {
         String identificador = gerarIdentificadorUnico(nome);
         return eventos.save(new Evento(nome, descricao, local, inicio, fim, capacidade, identificador));
+    }
+
+    /**
+     * Atualiza os dados do evento.
+     *
+     * Editar um evento ENCERRADO é permitido de propósito: encerrar fecha as
+     * inscrições, e o evento ainda vai acontecer -- trocar o local por causa da
+     * chuva ou corrigir o horário continuam sendo operações legítimas.
+     *
+     * O que não se permite é reduzir a capacidade abaixo de quem já está
+     * inscrito: o sistema passaria a informar uma lotação que não corresponde à
+     * realidade, e é essa informação que o painel de portaria usa.
+     */
+    @Transactional
+    public Evento atualizar(Long id, String nome, String descricao, String local,
+                            LocalDateTime inicio, LocalDateTime fim, Integer capacidade) {
+        Evento evento = porId(id);
+
+        long jaInscritos = inscritos.contarDoEvento(id);
+        if (capacidade != null && capacidade < jaInscritos) {
+            throw new AlteracaoRecusada(
+                    "Este evento já tem " + jaInscritos + " inscritos. "
+                    + "A capacidade não pode ser menor que isso.");
+        }
+
+        evento.alterarDados(nome, descricao, local, inicio, fim, capacidade);
+        return eventos.save(evento);
+    }
+
+    @Transactional
+    public void encerrar(Long id) {
+        Evento evento = porId(id);
+        evento.encerrar();
+        eventos.save(evento);
+    }
+
+    @Transactional
+    public void reabrir(Long id) {
+        Evento evento = porId(id);
+        evento.reabrir();
+        eventos.save(evento);
     }
 
     /**

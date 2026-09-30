@@ -49,8 +49,8 @@ a { color: var(--destaque); }
 }
 .marca span { color: var(--destaque); }
 .topo nav { display: flex; align-items: center; gap: 18px; font-size: .9rem; }
-.topo nav a { color: var(--texto-fraco); text-decoration: none; }
-.topo nav a:hover { color: var(--texto); }
+.topo nav a:not(.item-barra) { color: var(--texto-fraco); text-decoration: none; }
+.topo nav a:not(.item-barra):hover { color: var(--texto); }
 .topo form { margin: 0; }
 
 h1 { font-size: 1.6rem; margin: 28px 0 4px; }
@@ -157,4 +157,111 @@ tbody tr:hover { background: var(--superficie-2); }
 .credenciais-demo {
   margin-top: 18px; padding: 12px; text-align: center; font-size: .8rem;
   color: var(--texto-fraco); background: var(--superficie-2); border-radius: 8px;
+}
+
+/* ---------- itens da barra superior ---------- */
+/* Os três itens (Eventos, conta, Sair) compartilham a MESMA geometria:
+   altura, arredondamento, fonte e espaçamento. Antes eram um link puro, uma
+   cápsula e um retângulo -- três formas para funções do mesmo nível, o que
+   fazia a barra parecer montada por pessoas diferentes.
+   A única distinção que sobra é o ícone da conta, que marca de quem é a sessão. */
+.item-barra {
+  display: inline-flex; align-items: center; gap: 8px;
+  height: 34px; padding: 0 14px; box-sizing: border-box;
+  border: 1px solid var(--borda); border-radius: 999px;
+  background: transparent; color: var(--texto);
+  font-size: .88rem; font-weight: 500; font-family: inherit; line-height: 1;
+  text-decoration: none; cursor: pointer; white-space: nowrap;
+  transition: background .15s, border-color .15s, color .15s;
+}
+.item-barra:hover { background: var(--superficie-2); border-color: var(--destaque); }
+.item-barra:focus-visible { outline: 2px solid var(--destaque); outline-offset: 2px; }
+
+.item-barra svg {
+  width: 17px; height: 17px; flex: none;
+  fill: none; stroke: var(--destaque);
+  stroke-width: 1.8; stroke-linecap: round;
+}
+.item-barra span {
+  max-width: 18ch; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+
+/* ---------- etiqueta de estado ---------- */
+.etiqueta {
+  display: inline-block; margin-left: 6px;
+  padding: 2px 8px; border-radius: 999px;
+  font-size: .68rem; text-transform: uppercase; letter-spacing: .08em;
+  color: var(--alerta); border: 1px solid var(--alerta);
+  background: rgba(240, 165, 0, .1);
+  vertical-align: middle;
+}
+
+/* ---------- eco legível dos campos de data ---------- */
+/* Confirma por extenso o que o calendário do navegador selecionou.
+   Fica vazio (e sem ocupar espaço) enquanto não há data escolhida. */
+.eco-data {
+  display: block;
+  margin-top: 6px;
+  font-size: .78rem;
+  color: var(--texto-fraco);
+  min-height: 0;
+}
+.eco-data.preenchido {
+  color: var(--destaque);
+}
+.eco-data.preenchido::before {
+  content: "✓ ";
+}
+
+/* ---------- ação principal e ações secundárias ---------- */
+/* O painel de portaria é a razão de o sistema existir no dia do evento.
+   Ele ocupa a linha inteira, tem alvo de toque generoso (o operador está em pé,
+   no escuro, às vezes de luva) e leva ícone junto do texto -- ícone sozinho
+   exigiria adivinhar, e adivinhar com a fila andando custa caro. */
+.acao-principal {
+  display: flex; align-items: center; justify-content: center; gap: 16px;
+  width: 100%; box-sizing: border-box;
+  text-align: center;
+  margin: 4px 0 14px;
+  padding: 18px 22px;
+  background: var(--destaque); color: #1a1205;
+  border-radius: 14px; text-decoration: none;
+  box-shadow: 0 6px 18px rgba(240, 165, 0, .18);
+  transition: transform .12s, box-shadow .12s, background .12s;
+}
+.acao-principal:hover { background: var(--destaque-esc); box-shadow: 0 8px 22px rgba(240,165,0,.26); }
+.acao-principal:active { transform: translateY(1px); }
+.acao-principal:focus-visible { outline: 3px solid var(--texto); outline-offset: 3px; }
+
+.acao-principal svg {
+  width: 34px; height: 34px; flex: none;
+  fill: none; stroke: #1a1205; stroke-width: 1.7;
+  stroke-linecap: round; stroke-linejoin: round;
+}
+.acao-principal strong { display: block; font-size: 1.12rem; line-height: 1.2; }
+.acao-principal small  { display: block; margin-top: 3px; font-size: .82rem; opacity: .72; }
+
+/* As administrativas não competem com ela: sem preenchimento, texto menor. */
+.acoes-secundarias {
+  display: flex; flex-wrap: wrap; gap: 10px; align-items: center;
+  margin-bottom: 20px;
+}
+.acoes-secundarias form { margin: 0; }
+.acoes-secundarias a,
+.acoes-secundarias button {
+  display: inline-block;
+  padding: 8px 16px; font-size: .86rem; font-weight: 500; font-family: inherit;
+  color: var(--texto-fraco); background: transparent;
+  border: 1px solid var(--borda); border-radius: 8px;
+  text-decoration: none; cursor: pointer;
+}
+.acoes-secundarias a:hover,
+.acoes-secundarias button:hover { color: var(--texto); background: var(--superficie-2); }
+
+/* No celular -- que é onde a portaria acontece -- o alvo cresce ainda mais. */
+@media (max-width: 620px) {
+  .acao-principal { padding: 22px; gap: 14px; }
+  .acao-principal strong { font-size: 1.2rem; }
+  .acoes-secundarias a,
+  .acoes-secundarias button { flex: 1 1 auto; text-align: center; padding: 12px 16px; }
 }

@@ -6,16 +6,26 @@
     <title th:text="${titulo} + ' · Portaria'">Portaria</title>
     <link rel="stylesheet" th:href="@{/css/app.css}">
     <script th:src="@{/webjars/htmx.org/1.9.12/dist/htmx.min.js}" defer></script>
+    <script th:src="@{/js/data-legivel.js}" defer></script>
 </head>
 <body>
 
 <header class="topo" th:fragment="topo">
     <a class="marca" th:href="@{/eventos}">Porta<span>ria</span></a>
     <nav>
-        <a th:href="@{/eventos}">Eventos</a>
-        <a th:href="@{/conta}" th:text="${#authentication?.name}">admin</a>
+        <a class="item-barra" th:href="@{/eventos}">Eventos</a>
+        <a class="item-barra" th:href="@{/conta}" th:if="${usuarioAutenticado != null}"
+           title="Minha conta">
+            <!-- Ícone desenhado em SVG no próprio HTML: sem biblioteca de ícones,
+                 sem requisição extra, e acompanha a cor do texto ao redor. -->
+            <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                <circle cx="12" cy="8" r="3.6"/>
+                <path d="M4.5 19.5c0-3.6 3.4-6 7.5-6s7.5 2.4 7.5 6"/>
+            </svg>
+            <span th:text="${usuarioAutenticado.nome}">Minha conta</span>
+        </a>
         <form th:action="@{/logout}" method="post">
-            <button type="submit" class="botao-secundario">Sair</button>
+            <button type="submit" class="item-barra">Sair</button>
         </form>
     </nav>
 </header>

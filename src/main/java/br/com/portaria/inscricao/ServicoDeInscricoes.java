@@ -39,6 +39,9 @@ public class ServicoDeInscricoes {
     @Transactional
     public Inscricao inscrever(Evento evento, String nome, String email, String telefone,
                                String motoclube, String cidade) {
+        if (evento.isEncerrado()) {
+            throw new InscricaoRecusada("As inscrições para este evento foram encerradas.");
+        }
         long jaInscritos = inscricoes.countByEventoId(evento.getId());
         if (jaInscritos >= evento.getCapacidade()) {
             throw new InscricaoRecusada("As vagas para este evento se esgotaram.");

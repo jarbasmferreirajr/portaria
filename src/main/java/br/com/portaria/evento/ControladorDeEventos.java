@@ -12,6 +12,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import java.time.LocalDateTime;
@@ -34,8 +35,8 @@ public class ControladorDeEventos {
         this.checkIns = checkIns;
     }
 
-    /** Dados do formulário de criação, com as regras de validação. */
-    public static class FormularioNovoEvento {
+    /** Dados do formulário de evento -- serve tanto para criar quanto para editar. */
+    public static class FormularioDeEvento {
 
         @NotBlank(message = "Informe o nome do evento")
         @Size(max = 150)
@@ -77,13 +78,13 @@ public class ControladorDeEventos {
     public String listar(Model modelo) {
         modelo.addAttribute("eventos", eventos.listar());
         if (!modelo.containsAttribute("formulario")) {
-            modelo.addAttribute("formulario", new FormularioNovoEvento());
+            modelo.addAttribute("formulario", new FormularioDeEvento());
         }
         return "eventos/lista";
     }
 
     @PostMapping
-    public String criar(@ModelAttribute("formulario") @Valid FormularioNovoEvento formulario,
+    public String criar(@ModelAttribute("formulario") @Valid FormularioDeEvento formulario,
                         BindingResult erros, Model modelo) {
         if (erros.hasErrors()) {
             modelo.addAttribute("eventos", eventos.listar());
@@ -107,5 +108,72 @@ public class ControladorDeEventos {
         modelo.addAttribute("linkPublico", ServletUriComponentsBuilder.fromCurrentContextPath()
                 .path("/e/").path(evento.getIdentificadorPublico()).toUriString());
         return "eventos/detalhe";
+    }
+
+    // ---------- edição ----------
+
+    @GetMapping("/{id}/editar")
+    public String abrirEdicao(@PathVariable Long id, Model modelo) {
+        Evento evento = eventos.porId(id);
+        modelo.addAttribute("evento", evento);
+        if (!modelo.containsAttribute("formulario")) {
+            modelo.addAttribute("formulario", formularioDe(evento));
+        }
+        return "eventos/editar";
+    }
+
+    @PostMapping("/{id}/editar")
+    public String salvarEdicao(@PathVariable Long id,
+                               @ModelAttribute("formulario") @Valid FormularioDeEvento formulario,
+                               BindingResult erros, Model modelo, RedirectAttributes atributos) {
+        if (erros.hasErrors()) {
+            modelo.addAttribute("evento", eventos.porId(id));
+            return "eventos/editar";
+        }
+        try {
+            eventos.atualizar(id, formulario.getNome(), formulario.getDescricao(), formulario.getLocal(),
+                    formulario.getInicio(), formulario.getFim(), formulario.getCapacidade());
+        } catch (ServicoDeEventos.AlteracaoRecusada recusa) {
+            modelo.addAttribute("evento", eventos.porId(id));
+            modelo.addAttribute("erroEdicao", recusa.getMessage());
+            return "eventos/editar";
+        }
+        atributos.addFlashAttribute("sucesso", "Evento atualizado.");
+        return "redirect:/eventos/" + id;
+    }
+
+    // ---------- encerramento ----------
+
+    /**
+     * Encerra as inscrições.
+     *
+     * Sem mensagem de confirmação de propósito: o aviso permanente de estado,
+     * que aparece na própria página, já diz que as inscrições estão encerradas
+     * e o que isso implica. Somar um segundo aviso dizendo o mesmo faria a
+     * pessoa ler duas vezes para descobrir que não havia nada de novo.
+     */
+    @PostMapping("/{id}/encerrar")
+    public String encerrar(@PathVariable Long id) {
+        eventos.encerrar(id);
+        return "redirect:/eventos/" + id;
+    }
+
+    /** Reabrir mantém a confirmação: não há aviso permanente para o estado aberto. */
+    @PostMapping("/{id}/reabrir")
+    public String reabrir(@PathVariable Long id, RedirectAttributes atributos) {
+        eventos.reabrir(id);
+        atributos.addFlashAttribute("sucesso", "Inscrições reabertas.");
+        return "redirect:/eventos/" + id;
+    }
+
+    private FormularioDeEvento formularioDe(Evento evento) {
+        FormularioDeEvento formulario = new FormularioDeEvento();
+        formulario.setNome(evento.getNome());
+        formulario.setDescricao(evento.getDescricao());
+        formulario.setLocal(evento.getLocal());
+        formulario.setInicio(evento.getInicio());
+        formulario.setFim(evento.getFim());
+        formulario.setCapacidade(evento.getCapacidade());
+        return formulario;
     }
 }

@@ -16,7 +16,15 @@
 
     <p th:if="${evento.descricao}" th:text="${evento.descricao}"></p>
 
-    <div class="cartao">
+    <div class="cartao" th:if="${evento.encerrado}">
+        <h2 style="margin-top:0">Inscrições encerradas</h2>
+        <p style="margin-bottom:0">
+            Este evento não está mais recebendo inscrições. Se você já se inscreveu,
+            seu código continua válido — apresente-o na portaria.
+        </p>
+    </div>
+
+    <div class="cartao" th:unless="${evento.encerrado}">
         <h2>Inscrição</h2>
         <p class="sub" style="margin-bottom:16px">
             <strong th:text="${vagasRestantes}">0</strong> vagas restantes de

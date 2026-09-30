@@ -10,7 +10,7 @@
     <div th:fragment="painel" id="painel">
         <h1 th:text="${evento.nome}">Evento</h1>
         <p class="sub">Painel de portaria &middot; operador
-            <strong th:text="${#authentication?.name}">admin</strong></p>
+            <strong th:text="${usuarioAutenticado?.nome}">admin</strong></p>
 
         <div class="indicadores">
             <div class="indicador destaque">

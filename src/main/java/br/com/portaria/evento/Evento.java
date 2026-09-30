@@ -46,6 +46,10 @@ public class Evento {
     @Column(name = "criado_em", nullable = false)
     private LocalDateTime criadoEm = LocalDateTime.now(FUSO);
 
+    /** Nulo enquanto o evento aceita inscrições. */
+    @Column(name = "encerrado_em")
+    private LocalDateTime encerradoEm;
+
     protected Evento() {
         // Exigido pela JPA; não usar diretamente.
     }
@@ -73,4 +77,37 @@ public class Evento {
     public Integer getCapacidade() { return capacidade; }
     public String getIdentificadorPublico() { return identificadorPublico; }
     public LocalDateTime getCriadoEm() { return criadoEm; }
+    public LocalDateTime getEncerradoEm() { return encerradoEm; }
+
+    public boolean isEncerrado() {
+        return encerradoEm != null;
+    }
+
+    /**
+     * Altera os dados do evento.
+     *
+     * O identificador público NÃO muda junto com o nome, de propósito: ele já
+     * foi divulgado em cartaz, grupo de mensagem e link compartilhado. Recalculá-lo
+     * a cada correção de título quebraria inscrições em andamento.
+     */
+    public void alterarDados(String nome, String descricao, String local, LocalDateTime inicio,
+                             LocalDateTime fim, Integer capacidade) {
+        this.nome = nome;
+        this.descricao = descricao;
+        this.local = local;
+        this.inicio = inicio;
+        this.fim = fim;
+        this.capacidade = capacidade;
+    }
+
+    /** Fecha as inscrições. O check-in continua funcionando: quem já se inscreveu ainda chega. */
+    public void encerrar() {
+        if (encerradoEm == null) {
+            this.encerradoEm = LocalDateTime.now(FUSO);
+        }
+    }
+
+    public void reabrir() {
+        this.encerradoEm = null;
+    }
 }

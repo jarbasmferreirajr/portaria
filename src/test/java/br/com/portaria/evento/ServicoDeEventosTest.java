@@ -15,12 +15,14 @@ import static org.mockito.Mockito.*;
 class ServicoDeEventosTest {
 
     private RepositorioDeEventos repositorio;
+    private ContagemDeInscritos inscritos;
     private ServicoDeEventos servico;
 
     @BeforeEach
     void preparar() {
         repositorio = mock(RepositorioDeEventos.class);
-        servico = new ServicoDeEventos(repositorio);
+        inscritos = mock(ContagemDeInscritos.class);
+        servico = new ServicoDeEventos(repositorio, inscritos);
     }
 
     @Test
@@ -67,5 +69,52 @@ class ServicoDeEventosTest {
         assertThatThrownBy(() -> servico.porId(99L)).isInstanceOf(IllegalArgumentException.class);
         assertThatThrownBy(() -> servico.porIdentificadorPublico("ausente"))
                 .isInstanceOf(IllegalArgumentException.class);
+    }
+
+    @Test
+    void encerrarFechaInscricoesEReabrirDesfaz() {
+        Evento evento = new Evento("Encontro", null, "Patio", LocalDateTime.now(),
+                LocalDateTime.now().plusHours(4), 100, "encontro");
+        when(repositorio.findById(7L)).thenReturn(Optional.of(evento));
+        when(repositorio.save(any(Evento.class))).thenAnswer(i -> i.getArgument(0));
+
+        servico.encerrar(7L);
+        assertThat(evento.isEncerrado()).isTrue();
+        assertThat(evento.getEncerradoEm()).isNotNull();
+
+        servico.reabrir(7L);
+        assertThat(evento.isEncerrado()).isFalse();
+    }
+
+    @Test
+    void atualizarNaoMudaOIdentificadorPublico() {
+        Evento evento = new Evento("Nome Antigo", null, "Patio", LocalDateTime.now(),
+                LocalDateTime.now().plusHours(4), 100, "nome-antigo");
+        when(repositorio.findById(7L)).thenReturn(Optional.of(evento));
+        when(repositorio.save(any(Evento.class))).thenAnswer(i -> i.getArgument(0));
+
+        servico.atualizar(7L, "Nome Novo", "Outra descricao", "Outro local",
+                LocalDateTime.now(), LocalDateTime.now().plusHours(6), 250);
+
+        assertThat(evento.getNome()).isEqualTo("Nome Novo");
+        assertThat(evento.getCapacidade()).isEqualTo(250);
+        // O link ja foi divulgado: nao pode mudar junto com o nome.
+        assertThat(evento.getIdentificadorPublico()).isEqualTo("nome-antigo");
+    }
+
+    @Test
+    void recusaCapacidadeMenorQueOsJaInscritos() {
+        Evento evento = new Evento("Encontro", null, "Patio", LocalDateTime.now(),
+                LocalDateTime.now().plusHours(4), 300, "encontro");
+        when(repositorio.findById(7L)).thenReturn(Optional.of(evento));
+        when(inscritos.contarDoEvento(7L)).thenReturn(50L);
+
+        assertThatThrownBy(() -> servico.atualizar(7L, "Encontro", null, "Patio",
+                LocalDateTime.now(), LocalDateTime.now().plusHours(4), 10))
+                .isInstanceOf(ServicoDeEventos.AlteracaoRecusada.class)
+                .hasMessageContaining("50 inscritos");
+
+        // A capacidade original permanece intacta.
+        assertThat(evento.getCapacidade()).isEqualTo(300);
     }
 }

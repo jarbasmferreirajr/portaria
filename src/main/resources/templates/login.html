@@ -12,6 +12,14 @@
             <div class="aviso" th:if="${param.error}">
                 Usuário ou senha inválidos.
             </div>
+            <div class="aviso" th:if="${param.senhaAlterada}"
+                 style="background:rgba(47,191,113,.12);border-color:var(--ok);color:#a9e9c6;">
+                Senha alterada. Entre novamente com a nova senha.
+            </div>
+            <div class="aviso" th:if="${param.emailAlterado}"
+                 style="background:rgba(47,191,113,.12);border-color:var(--ok);color:#a9e9c6;">
+                E-mail alterado. Entre novamente com o endereço novo.
+            </div>
             <div class="aviso" th:if="${param.saiu}"
                  style="background:rgba(47,191,113,.12);border-color:var(--ok);color:#a9e9c6;">
                 Sessão encerrada com segurança.
@@ -19,8 +27,9 @@
 
             <form th:action="@{/login}" method="post">
                 <div class="campo">
-                    <label for="username">Usuário</label>
-                    <input type="text" id="username" name="username" autocomplete="username" autofocus required>
+                    <label for="username">E-mail</label>
+                    <input type="email" id="username" name="username" autocomplete="username"
+                           placeholder="voce@exemplo.com" autofocus required>
                 </div>
                 <div class="campo">
                     <label for="password">Senha</label>
@@ -30,7 +39,7 @@
             </form>
 
             <div class="credenciais-demo">
-                Acesso de demonstração &middot; <strong>admin</strong> / <strong>portaria123</strong>
+                Acesso de demonstração &middot; <strong>admin@portaria.local</strong> / <strong>portaria123</strong>
             </div>
         </div>
     </div>

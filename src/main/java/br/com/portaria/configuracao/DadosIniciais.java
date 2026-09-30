@@ -4,6 +4,9 @@ import br.com.portaria.evento.Evento;
 import br.com.portaria.evento.RepositorioDeEventos;
 import br.com.portaria.evento.ServicoDeEventos;
 import br.com.portaria.inscricao.ServicoDeInscricoes;
+import br.com.portaria.usuario.RepositorioDeUsuarios;
+import br.com.portaria.usuario.ServicoDeUsuarios;
+import br.com.portaria.usuario.Usuario;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
@@ -22,19 +25,44 @@ import java.time.LocalTime;
 @Profile("!test")
 public class DadosIniciais implements CommandLineRunner {
 
+    /** Conta inicial, para que exista alguém capaz de entrar na primeira execução. */
+    private static final String EMAIL_ADMINISTRADOR = "admin@portaria.local";
+    private static final String SENHA_ADMINISTRADOR = "portaria123";
+
     private final RepositorioDeEventos repositorioDeEventos;
     private final ServicoDeEventos eventos;
     private final ServicoDeInscricoes inscricoes;
+    private final RepositorioDeUsuarios repositorioDeUsuarios;
+    private final ServicoDeUsuarios usuarios;
 
     public DadosIniciais(RepositorioDeEventos repositorioDeEventos, ServicoDeEventos eventos,
-                         ServicoDeInscricoes inscricoes) {
+                         ServicoDeInscricoes inscricoes, RepositorioDeUsuarios repositorioDeUsuarios,
+                         ServicoDeUsuarios usuarios) {
         this.repositorioDeEventos = repositorioDeEventos;
         this.eventos = eventos;
         this.inscricoes = inscricoes;
+        this.repositorioDeUsuarios = repositorioDeUsuarios;
+        this.usuarios = usuarios;
+    }
+
+    /**
+     * Cria o administrador inicial se ainda não houver nenhuma conta.
+     *
+     * Roda fora da checagem de eventos de propósito: um banco que já tem
+     * eventos, mas nenhum usuário, continua precisando de alguém para entrar.
+     */
+    private void semearAdministrador() {
+        if (repositorioDeUsuarios.count() > 0) {
+            return;
+        }
+        usuarios.criar("Administrador", EMAIL_ADMINISTRADOR, SENHA_ADMINISTRADOR,
+                Usuario.PAPEL_ORGANIZADOR);
     }
 
     @Override
     public void run(String... argumentos) {
+        semearAdministrador();
+
         if (repositorioDeEventos.count() > 0) {
             return;
         }

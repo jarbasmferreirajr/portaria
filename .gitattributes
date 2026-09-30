@@ -1,0 +1,25 @@
+# Normaliza os fins de linha para não poluir os diffs.
+#
+# Sem isto, editores diferentes gravam CRLF ou LF e o Git enxerga o arquivo
+# inteiro como alterado, mesmo quando nenhuma linha mudou de conteúdo.
+# O repositório guarda tudo em LF; os scripts do Windows são a exceção,
+# porque o interpretador de lote exige CRLF.
+
+* text=auto eol=lf
+
+*.bat  text eol=crlf
+*.cmd  text eol=crlf
+
+*.java     text
+*.sql      text
+*.html     text
+*.css      text
+*.xml      text
+*.md       text
+*.properties text
+
+# Binários não devem ser tocados.
+*.png binary
+*.jpg binary
+*.pdf binary
+*.jar binary

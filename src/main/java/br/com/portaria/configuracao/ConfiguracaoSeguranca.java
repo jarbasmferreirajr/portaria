@@ -3,12 +3,8 @@ package br.com.portaria.configuracao;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-import org.springframework.security.core.userdetails.User;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.servlet.util.matcher.PathPatternRequestMatcher;
 
@@ -18,19 +14,11 @@ import org.springframework.security.web.servlet.util.matcher.PathPatternRequestM
 @Configuration
 public class ConfiguracaoSeguranca {
 
-    /**
-     * Um único usuário mantido em memória: suficiente para a primeira entrega.
-     * Cadastro de usuários, papéis e recuperação de senha estão no backlog --
-     * não agregariam nada à demonstração do fluxo de inscrição e check-in.
-     */
-    @Bean
-    public UserDetailsService servicoDeUsuarios(PasswordEncoder codificador) {
-        UserDetails organizador = User.withUsername("admin")
-                .password(codificador.encode("portaria123"))
-                .roles("ORGANIZADOR")
-                .build();
-        return new InMemoryUserDetailsManager(organizador);
-    }
+    // A partir da Sprint 3 os usuários vivem no banco: quem responde ao Spring
+    // Security é ServicoDeDetalhesDoUsuario, descoberto automaticamente por ser
+    // o único bean de UserDetailsService do contexto. O usuário fixo em memória
+    // saiu daqui porque não se altera nem se recupera a senha de quem não é
+    // persistido.
 
     @Bean
     public PasswordEncoder codificadorDeSenha() {

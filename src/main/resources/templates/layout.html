@@ -13,7 +13,7 @@
     <a class="marca" th:href="@{/eventos}">Porta<span>ria</span></a>
     <nav>
         <a th:href="@{/eventos}">Eventos</a>
-        <span th:text="${#authentication?.name}">admin</span>
+        <a th:href="@{/conta}" th:text="${#authentication?.name}">admin</a>
         <form th:action="@{/logout}" method="post">
             <button type="submit" class="botao-secundario">Sair</button>
         </form>

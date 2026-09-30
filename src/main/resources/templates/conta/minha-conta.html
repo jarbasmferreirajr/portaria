@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="pt-BR">
+<head th:replace="~{layout :: cabecalho('Minha conta')}"></head>
+<body>
+
+<header th:replace="~{layout :: topo}"></header>
+
+<div class="container">
+    <h1>Minha conta</h1>
+    <p class="sub">Altere seus dados de acesso.</p>
+
+    <div th:if="${sucesso}" class="aviso"
+         style="background:rgba(47,191,113,.12);border-color:var(--ok);color:#a9e9c6;"
+         th:text="${sucesso}"></div>
+
+    <div class="grade grade-2">
+
+        <div class="cartao">
+            <h2 style="margin-top:0">Dados pessoais</h2>
+
+            <div class="aviso" th:if="${erroDados}" th:text="${erroDados}"></div>
+
+            <form th:action="@{/conta/dados}" th:object="${formularioDados}" method="post">
+                <div class="campo">
+                    <label for="nome">Nome</label>
+                    <input type="text" id="nome" th:field="*{nome}">
+                    <div class="erro-campo" th:if="${#fields.hasErrors('nome')}" th:errors="*{nome}"></div>
+                </div>
+                <div class="campo">
+                    <label for="email">E-mail</label>
+                    <input type="email" id="email" th:field="*{email}">
+                    <div class="erro-campo" th:if="${#fields.hasErrors('email')}" th:errors="*{email}"></div>
+                </div>
+                <button type="submit">Salvar dados</button>
+                <p class="dica">
+                    O e-mail é o seu login. Se você alterá-lo, a sessão será encerrada
+                    e você entrará novamente com o endereço novo.
+                </p>
+            </form>
+        </div>
+
+        <div class="cartao">
+            <h2 style="margin-top:0">Alterar senha</h2>
+
+            <div class="aviso" th:if="${erroSenha}" th:text="${erroSenha}"></div>
+
+            <form th:action="@{/conta/senha}" th:object="${formularioSenha}" method="post">
+                <div class="campo">
+                    <label for="senhaAtual">Senha atual</label>
+                    <input type="password" id="senhaAtual" th:field="*{senhaAtual}"
+                           autocomplete="current-password">
+                    <div class="erro-campo" th:if="${#fields.hasErrors('senhaAtual')}"
+                         th:errors="*{senhaAtual}"></div>
+                </div>
+                <div class="campo">
+                    <label for="novaSenha">Nova senha</label>
+                    <input type="password" id="novaSenha" th:field="*{novaSenha}"
+                           autocomplete="new-password">
+                    <div class="erro-campo" th:if="${#fields.hasErrors('novaSenha')}"
+                         th:errors="*{novaSenha}"></div>
+                </div>
+                <div class="campo">
+                    <label for="confirmacao">Repita a nova senha</label>
+                    <input type="password" id="confirmacao" th:field="*{confirmacao}"
+                           autocomplete="new-password">
+                    <div class="erro-campo" th:if="${#fields.hasErrors('confirmacao')}"
+                         th:errors="*{confirmacao}"></div>
+                </div>
+                <button type="submit">Alterar senha</button>
+                <p class="dica">
+                    Pedimos a senha atual para que ninguém com a sua sessão aberta
+                    consiga tomar a conta trocando a senha.
+                </p>
+            </form>
+        </div>
+
+    </div>
+
+    <div class="cartao">
+        <h2 style="margin-top:0">Conta</h2>
+        <table>
+            <tbody>
+            <tr><th>Papel</th><td th:text="${usuario.papel}">ORGANIZADOR</td></tr>
+            <tr><th>Criada em</th>
+                <td th:text="${#temporals.format(usuario.criadoEm, 'dd/MM/yyyy ''às'' HH:mm')}">data</td></tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+</body>
+</html>

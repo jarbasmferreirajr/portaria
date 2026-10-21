@@ -3,11 +3,9 @@
 <head th:replace="~{layout :: cabecalho(${evento.nome})}"></head>
 <body>
 
-<header class="topo">
-    <span class="marca">Porta<span>ria</span></span>
-</header>
+<header th:replace="~{layout :: topo-publico}"></header>
 
-<div class="container-estreito">
+<div class="container-estreito" id="conteudo">
     <h1 th:text="${evento.nome}">Evento</h1>
     <p class="sub">
         <span th:text="${evento.local}">Local</span><br>
@@ -17,8 +15,8 @@
     <p th:if="${evento.descricao}" th:text="${evento.descricao}"></p>
 
     <div class="cartao" th:if="${evento.encerrado}">
-        <h2 style="margin-top:0">Inscrições encerradas</h2>
-        <p style="margin-bottom:0">
+        <h2>Inscrições encerradas</h2>
+        <p class="sem-margem-baixo">
             Este evento não está mais recebendo inscrições. Se você já se inscreveu,
             seu código continua válido — apresente-o na portaria.
         </p>
@@ -26,7 +24,7 @@
 
     <div class="cartao" th:unless="${evento.encerrado}">
         <h2>Inscrição</h2>
-        <p class="sub" style="margin-bottom:16px">
+        <p class="sub compacta">
             <strong th:text="${vagasRestantes}">0</strong> vagas restantes de
             <span th:text="${evento.capacidade}">0</span>.
         </p>
@@ -58,7 +56,7 @@
                 <label for="motoclube">Motoclube / grupo (opcional)</label>
                 <input type="text" id="motoclube" th:field="*{motoclube}">
             </div>
-            <button type="submit" style="width:100%">Confirmar inscrição</button>
+            <button type="submit" class="botao-largo">Confirmar inscrição</button>
             <p class="dica">
                 Coletamos apenas o necessário para organizar a entrada no evento.
             </p>

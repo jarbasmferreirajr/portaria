@@ -3,21 +3,52 @@
 <head th:fragment="cabecalho(titulo)">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!-- Pinta a barra do navegador no celular com o fundo da aplicação,
+         para que a tela não termine em uma faixa branca. -->
+    <meta name="theme-color" content="#0C0E11">
     <title th:text="${titulo} + ' · Portaria'">Portaria</title>
+    <link rel="icon" th:href="@{/favicon.svg}" type="image/svg+xml">
     <link rel="stylesheet" th:href="@{/css/app.css}">
     <script th:src="@{/webjars/htmx.org/1.9.12/dist/htmx.min.js}" defer></script>
     <script th:src="@{/js/data-legivel.js}" defer></script>
 </head>
 <body>
 
+<!-- Símbolo da marca, declarado uma vez e reaproveitado pelas telas.
+
+     Uma cancela erguida: poste, braço inclinado, luz na ponta. É o que
+     o sistema faz, e são três formas -- que é o que sobrevive a 20 px
+     na aba do navegador. A escolha foge de caveira, guidão e chama:
+     marcas assim prendem o sistema a um único tipo de evento, e ele
+     também atende encontro cultural, feira e festa de clube.
+
+     Desenhado em SVG dentro do HTML: nenhuma biblioteca de ícones,
+     nenhuma requisição extra, e as cores vêm das fichas da folha de
+     estilo, então o símbolo acompanha o tema sozinho. -->
+<svg th:fragment="simbolo" class="simbolo" viewBox="0 0 48 48"
+     aria-hidden="true" focusable="false">
+    <rect class="poste" x="6" y="12" width="7" height="30" rx="2"/>
+    <rect class="chao" x="4" y="40" width="40" height="4" rx="2"/>
+    <g transform="rotate(-32 16 18)">
+        <rect class="braco" x="12" y="14" width="34" height="7" rx="2"/>
+    </g>
+    <rect class="luz" x="34" y="4" width="8" height="8" rx="2"/>
+</svg>
+
 <header class="topo" th:fragment="topo">
-    <a class="marca" th:href="@{/eventos}">Porta<span>ria</span></a>
+    <!-- Primeiro elemento focável da página: quem navega por teclado
+         pula os três itens da barra e cai direto no conteúdo. Fica fora
+         da tela até receber o foco. -->
+    <a class="pular-para-conteudo" href="#conteudo">Ir para o conteúdo</a>
+
+    <a class="marca" th:href="@{/eventos}">
+        <svg th:replace="~{layout :: simbolo}"></svg>
+        <span class="palavra">Porta<span>ria</span></span>
+    </a>
     <nav>
         <a class="item-barra" th:href="@{/eventos}">Eventos</a>
         <a class="item-barra" th:href="@{/conta}" th:if="${usuarioAutenticado != null}"
            title="Minha conta">
-            <!-- Ícone desenhado em SVG no próprio HTML: sem biblioteca de ícones,
-                 sem requisição extra, e acompanha a cor do texto ao redor. -->
             <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
                 <circle cx="12" cy="8" r="3.6"/>
                 <path d="M4.5 19.5c0-3.6 3.4-6 7.5-6s7.5 2.4 7.5 6"/>
@@ -28,6 +59,15 @@
             <button type="submit" class="item-barra">Sair</button>
         </form>
     </nav>
+</header>
+
+<!-- Barra das páginas públicas: a mesma marca, sem navegação, porque o
+     participante não tem conta nem para onde ir dentro do sistema. -->
+<header class="topo" th:fragment="topo-publico">
+    <span class="marca">
+        <svg th:replace="~{layout :: simbolo}"></svg>
+        <span class="palavra">Porta<span>ria</span></span>
+    </span>
 </header>
 
 </body>

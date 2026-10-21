@@ -5,12 +5,11 @@
 
 <header th:replace="~{layout :: topo}"></header>
 
-<div class="container-estreito">
+<div class="container-estreito" id="conteudo">
     <h1>Editar evento</h1>
     <p class="sub" th:text="${evento.nome}">Nome atual</p>
 
-    <div th:if="${evento.encerrado}" class="aviso"
-         style="background:rgba(240,165,0,.12);border-color:var(--alerta);color:#f3d08a;">
+    <div th:if="${evento.encerrado}" class="aviso atencao">
         Este evento está com as <strong>inscrições encerradas</strong>. A edição
         continua permitida — o evento ainda vai acontecer, e local, horário e
         descrição podem precisar de ajuste.

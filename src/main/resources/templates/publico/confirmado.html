@@ -3,11 +3,9 @@
 <head th:replace="~{layout :: cabecalho('Inscrição confirmada')}"></head>
 <body>
 
-<header class="topo">
-    <span class="marca">Porta<span>ria</span></span>
-</header>
+<header th:replace="~{layout :: topo-publico}"></header>
 
-<div class="container-estreito">
+<div class="container-estreito" id="conteudo">
     <h1>Inscrição confirmada</h1>
     <p class="sub">
         <span th:text="${inscricao.nome}">Nome</span>, sua vaga em
@@ -15,19 +13,19 @@
     </p>
 
     <div class="cartao">
-        <p style="margin-top:0;color:var(--texto-fraco);font-size:.85rem;text-transform:uppercase;letter-spacing:.06em">
+        <p class="rotulo centro sem-margem-topo">
             Seu código de entrada
         </p>
         <div class="codigo codigo-grande" th:text="${inscricao.codigo}">ABC123</div>
-        <p style="text-align:center;color:var(--texto-fraco);font-size:.9rem">
+        <p class="apoio centro">
             Apresente este código na portaria.<br>
             Tire um print desta tela — ele funciona mesmo sem sinal de celular.
         </p>
     </div>
 
     <div class="cartao">
-        <h2 style="margin-top:0">Detalhes do evento</h2>
-        <p style="margin:0">
+        <h2>Detalhes do evento</h2>
+        <p class="sem-margem">
             <span th:text="${evento.local}">Local</span><br>
             <span th:text="${#temporals.format(evento.inicio, 'dd/MM/yyyy ''às'' HH:mm')}">data</span>
         </p>

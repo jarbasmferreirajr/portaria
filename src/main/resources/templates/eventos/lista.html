@@ -5,37 +5,50 @@
 
 <header th:replace="~{layout :: topo}"></header>
 
-<div class="container">
+<div class="container" id="conteudo">
     <h1>Eventos</h1>
-    <p class="sub">Cada evento tem um link público de inscrição e um painel de portaria.</p>
+    <p class="sub" th:if="${organizador}">
+        Cada evento tem um link público de inscrição e um painel de portaria.
+    </p>
+    <p class="sub" th:unless="${organizador}">
+        Os eventos em que você trabalha. Abra o painel de portaria para registrar as entradas.
+    </p>
 
-    <div class="grade grade-2">
+    <div th:class="${organizador} ? 'grade grade-2' : 'grade'">
         <div>
             <div class="cartao">
-                <h2>Meus eventos</h2>
-                <table th:if="${!#lists.isEmpty(eventos)}">
-                    <thead>
-                    <tr><th>Evento</th><th>Início</th><th>Vagas</th></tr>
-                    </thead>
-                    <tbody>
-                    <tr th:each="e : ${eventos}">
-                        <td>
-                            <a th:href="@{/eventos/{id}(id=${e.id})}" th:text="${e.nome}">Nome</a>
-                            <span class="etiqueta" th:if="${e.encerrado}">encerrado</span><br>
-                            <small style="color:var(--texto-fraco)" th:text="${e.local}">Local</small>
-                        </td>
-                        <td th:text="${#temporals.format(e.inicio, 'dd/MM/yyyy HH:mm')}">data</td>
-                        <td th:text="${e.capacidade}">0</td>
-                    </tr>
-                    </tbody>
-                </table>
-                <p class="vazio" th:if="${#lists.isEmpty(eventos)}">
+                <h2 th:text="${organizador} ? 'Meus eventos' : 'Eventos em que trabalho'">Meus eventos</h2>
+                <div class="tabela-rolavel">
+                    <table th:if="${!#lists.isEmpty(eventos)}">
+                        <thead>
+                        <tr><th>Evento</th><th>Início</th><th th:if="${organizador}">Vagas</th></tr>
+                        </thead>
+                        <tbody>
+                        <tr th:each="e : ${eventos}">
+                            <td>
+                                <a th:if="${organizador}" th:href="@{/eventos/{id}(id=${e.id})}"
+                                   th:text="${e.nome}">Nome</a>
+                                <a th:unless="${organizador}" th:href="@{/eventos/{id}/checkin(id=${e.id})}"
+                                   th:text="${e.nome}" title="Abrir painel de portaria">Nome</a>
+                                <span class="etiqueta" th:if="${e.encerrado}">encerrado</span><br>
+                                <small class="apoio" th:text="${e.local}">Local</small>
+                            </td>
+                            <td th:text="${#temporals.format(e.inicio, 'dd/MM/yyyy HH:mm')}">data</td>
+                            <td th:if="${organizador}" th:text="${e.capacidade}">0</td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <p class="vazio" th:if="${#lists.isEmpty(eventos) and organizador}">
                     Nenhum evento cadastrado ainda. Crie o primeiro ao lado.
+                </p>
+                <p class="vazio" th:if="${#lists.isEmpty(eventos) and !organizador}">
+                    Você ainda não foi incluído em nenhum evento.
                 </p>
             </div>
         </div>
 
-        <div>
+        <div th:if="${organizador}">
             <div class="cartao">
                 <h2>Cadastrar Novo Evento</h2>
                 <form th:action="@{/eventos}" th:object="${formulario}" method="post">

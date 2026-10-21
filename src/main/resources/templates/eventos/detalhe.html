@@ -5,7 +5,7 @@
 
 <header th:replace="~{layout :: topo}"></header>
 
-<div class="container">
+<div class="container" id="conteudo">
     <h1 th:text="${evento.nome}">Evento</h1>
     <p class="sub">
         <span th:text="${evento.local}">Local</span> &middot;
@@ -27,12 +27,9 @@
         </div>
     </div>
 
-    <div th:if="${sucesso}" class="aviso"
-         style="background:rgba(47,191,113,.12);border-color:var(--ok);color:#a9e9c6;"
-         th:text="${sucesso}"></div>
+    <div th:if="${sucesso}" class="aviso ok" th:text="${sucesso}"></div>
 
-    <div th:if="${evento.encerrado}" class="aviso"
-         style="background:rgba(240,165,0,.12);border-color:var(--alerta);color:#f3d08a;">
+    <div th:if="${evento.encerrado}" class="aviso atencao">
         Inscrições encerradas em
         <span th:text="${#temporals.format(evento.encerradoEm, 'dd/MM/yyyy ''às'' HH:mm')}">data</span>.
         O painel de portaria continua funcionando para quem já se inscreveu, e as
@@ -61,6 +58,7 @@
 
     <div class="acoes-secundarias">
         <a th:href="@{/eventos/{id}/editar(id=${evento.id})}">Editar evento</a>
+        <a th:href="@{/eventos/{id}/colaboradores(id=${evento.id})}">Colaboradores</a>
 
         <form th:unless="${evento.encerrado}" th:action="@{/eventos/{id}/encerrar(id=${evento.id})}"
               method="post">
@@ -74,7 +72,7 @@
 
     <div class="cartao">
         <h2>Link público de inscrição</h2>
-        <p class="sub" style="margin-bottom:10px">Divulgue este endereço. Não exige login.</p>
+        <p class="sub compacta">Divulgue este endereço. Não exige login.</p>
         <input type="text" readonly onclick="this.select()" th:value="${linkPublico}">
         <p class="dica">
             <a th:href="@{/e/{identificador}(identificador=${evento.identificadorPublico})}" target="_blank">Abrir a página de inscrição</a>
@@ -83,22 +81,24 @@
 
     <div class="cartao">
         <h2>Inscritos</h2>
-        <table th:if="${!#lists.isEmpty(inscricoes)}">
-            <thead>
-            <tr><th>Nome</th><th>Motoclube</th><th>Cidade</th><th>Código</th></tr>
-            </thead>
-            <tbody>
-            <tr th:each="i : ${inscricoes}">
-                <td>
-                    <span th:text="${i.nome}">Nome</span><br>
-                    <small style="color:var(--texto-fraco)" th:text="${i.email}">email</small>
-                </td>
-                <td th:text="${i.motoclube} ?: '—'">—</td>
-                <td th:text="${i.cidade} ?: '—'">—</td>
-                <td class="codigo" th:text="${i.codigo}">ABC123</td>
-            </tr>
-            </tbody>
-        </table>
+        <div class="tabela-rolavel">
+            <table th:if="${!#lists.isEmpty(inscricoes)}">
+                <thead>
+                <tr><th>Nome</th><th>Motoclube</th><th>Cidade</th><th>Código</th></tr>
+                </thead>
+                <tbody>
+                <tr th:each="i : ${inscricoes}">
+                    <td>
+                        <span th:text="${i.nome}">Nome</span><br>
+                        <small class="apoio" th:text="${i.email}">email</small>
+                    </td>
+                    <td th:text="${i.motoclube} ?: '—'">—</td>
+                    <td th:text="${i.cidade} ?: '—'">—</td>
+                    <td class="codigo" th:text="${i.codigo}">ABC123</td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
         <p class="vazio" th:if="${#lists.isEmpty(inscricoes)}">Nenhuma inscrição ainda.</p>
     </div>
 </div>

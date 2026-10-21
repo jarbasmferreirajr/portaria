@@ -19,6 +19,15 @@
 
     <properties>
         <java.version>25</java.version>
+        <!--
+            O Flyway que vem com este Spring Boot foi validado com H2 ate a
+            2.3.232. Sem esta linha, o Boot resolve uma versao mais nova e o
+            Flyway avisa a cada subida que a combinacao nao foi verificada.
+            Fixamos a versao validada para manter o log limpo.
+            O H2 e so de desenvolvimento; quando o PostgreSQL entrar, esta
+            propriedade pode sair.
+        -->
+        <h2.version>2.3.232</h2.version>
     </properties>
 
     <dependencies>

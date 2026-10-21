@@ -5,19 +5,17 @@
 
 <header th:replace="~{layout :: topo}"></header>
 
-<div class="container">
+<div class="container" id="conteudo">
     <h1>Minha conta</h1>
     <p class="sub">Altere seus dados de acesso.</p>
 
-    <div th:if="${sucesso}" class="aviso"
-         style="background:rgba(47,191,113,.12);border-color:var(--ok);color:#a9e9c6;"
-         th:text="${sucesso}"></div>
+    <div th:if="${sucesso}" class="aviso ok" th:text="${sucesso}"></div>
 
     <div class="grade grade-2">
 
         <div class="cartao">
-            <h2 style="margin-top:0">Dados do organizador</h2>
-            <p class="sub" style="margin-bottom:16px">
+            <h2>Dados do organizador</h2>
+            <p class="sub compacta">
                 Nome e e-mail são obrigatórios. O restante é contato para quem
                 tiver dúvida sobre o evento.
             </p>
@@ -62,7 +60,7 @@
         </div>
 
         <div class="cartao">
-            <h2 style="margin-top:0">Alterar senha</h2>
+            <h2>Alterar senha</h2>
 
             <div class="aviso" th:if="${erroSenha}" th:text="${erroSenha}"></div>
 
@@ -99,14 +97,16 @@
     </div>
 
     <div class="cartao">
-        <h2 style="margin-top:0">Conta</h2>
-        <table>
-            <tbody>
-            <tr><th>Papel</th><td th:text="${usuario.papel}">ORGANIZADOR</td></tr>
-            <tr><th>Criada em</th>
-                <td th:text="${#temporals.format(usuario.criadoEm, 'dd/MM/yyyy ''às'' HH:mm')}">data</td></tr>
-            </tbody>
-        </table>
+        <h2>Conta</h2>
+        <div class="tabela-rolavel">
+            <table>
+                <tbody>
+                <tr><th>Papel</th><td th:text="${usuario.papel}">ORGANIZADOR</td></tr>
+                <tr><th>Criada em</th>
+                    <td th:text="${#temporals.format(usuario.criadoEm, 'dd/MM/yyyy ''às'' HH:mm')}">data</td></tr>
+                </tbody>
+            </table>
+        </div>
     </div>
 </div>
 

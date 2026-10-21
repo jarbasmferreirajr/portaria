@@ -1,0 +1,46 @@
+Fontes embarcadas no projeto
+============================
+
+As tres fontes abaixo ficam dentro do repositorio, servidas pela propria
+aplicacao em /fontes. Nao ha chamada ao Google Fonts nem a nenhum CDN: a
+apresentacao e o uso no dia do evento precisam funcionar sem internet, e a
+portaria de um evento ao ar livre e justamente onde o sinal falta.
+
+Sao os arquivos variaveis com o subconjunto latino -- cobrem todos os
+acentos do portugues (U+0000-00FF) em um unico arquivo por familia, com
+toda a faixa de pesos dentro dele. Somadas, 116 KB.
+
+
+oswald-latin-wght-normal.woff2           28 KB
+  Oswald, versao 5.3.0 do pacote @fontsource-variable/oswald.
+  Origem: https://github.com/googlefonts/OswaldFont
+  Licenca: SIL Open Font License 1.1 (LICENCA-Oswald.txt)
+  Titulos, rotulos e numeros. E uma grotesca condensada, da familia dos
+  letreiros de sinalizacao -- e a voz da identidade "Cancela": placa de
+  portao, caixa alta, entreletra aberta.
+
+
+inter-latin-wght-normal.woff2            48 KB
+  Inter, versao 5.1.1 do pacote @fontsource-variable/inter.
+  Origem: https://github.com/rsms/inter
+  Licenca: SIL Open Font License 1.1 (LICENCA-Inter.txt)
+  Texto corrido e campos de formulario. Foi desenhada para tela, em
+  tamanhos pequenos, com altura-x grande -- o que ajuda nas tabelas de
+  inscritos.
+
+
+jetbrains-mono-latin-wght-normal.woff2   40 KB
+  JetBrains Mono, versao 5.1.1 do pacote
+  @fontsource-variable/jetbrains-mono.
+  Origem: https://github.com/JetBrains/JetBrainsMono
+  Licenca: SIL Open Font License 1.1 (LICENCA-JetBrainsMono.txt)
+  Usada so nos codigos de inscricao. A escolha e funcional, nao estetica:
+  o operador digita o codigo lido do celular do participante, e nesta
+  fonte o zero e cortado, o 1 tem base, e o I maiusculo tem serifa -- ou
+  seja, 0/O e 1/l/I nao se confundem. Com a fila andando, errar um
+  caractere custa tempo.
+
+
+As tres licencas permitem uso, redistribuicao e embarque no software,
+inclusive comercial, desde que o texto da licenca acompanhe os arquivos --
+e por isso que os tres .txt estao aqui.

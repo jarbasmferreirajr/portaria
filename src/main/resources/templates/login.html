@@ -5,27 +5,26 @@
 
 <div class="tela-login">
     <div class="caixa-login">
-        <div class="marca-login">Porta<span>ria</span></div>
+        <div class="marca-login">
+            <svg th:replace="~{layout :: simbolo}"></svg>
+            <span class="palavra">Porta<span>ria</span></span>
+        </div>
         <p class="lema">Controle de entrada para eventos presenciais</p>
 
         <div class="cartao">
             <div class="aviso" th:if="${param.error}">
                 Usuário ou senha inválidos.
             </div>
-            <div class="aviso" th:if="${param.senhaRedefinida}"
-                 style="background:rgba(47,191,113,.12);border-color:var(--ok);color:#a9e9c6;">
+            <div class="aviso ok" th:if="${param.senhaRedefinida}">
                 Senha redefinida. Entre com a senha nova.
             </div>
-            <div class="aviso" th:if="${param.senhaAlterada}"
-                 style="background:rgba(47,191,113,.12);border-color:var(--ok);color:#a9e9c6;">
+            <div class="aviso ok" th:if="${param.senhaAlterada}">
                 Senha alterada. Entre novamente com a nova senha.
             </div>
-            <div class="aviso" th:if="${param.emailAlterado}"
-                 style="background:rgba(47,191,113,.12);border-color:var(--ok);color:#a9e9c6;">
+            <div class="aviso ok" th:if="${param.emailAlterado}">
                 E-mail alterado. Entre novamente com o endereço novo.
             </div>
-            <div class="aviso" th:if="${param.saiu}"
-                 style="background:rgba(47,191,113,.12);border-color:var(--ok);color:#a9e9c6;">
+            <div class="aviso ok" th:if="${param.saiu}">
                 Sessão encerrada com segurança.
             </div>
 
@@ -39,8 +38,8 @@
                     <label for="password">Senha</label>
                     <input type="password" id="password" name="password" autocomplete="current-password" required>
                 </div>
-                <button type="submit" style="width:100%">Entrar</button>
-                <p class="dica" style="text-align:center">
+                <button type="submit" class="botao-largo">Entrar</button>
+                <p class="dica centro">
                     <a th:href="@{/recuperar-senha}">Esqueci minha senha</a>
                 </p>
             </form>

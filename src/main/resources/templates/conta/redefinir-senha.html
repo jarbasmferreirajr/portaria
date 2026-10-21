@@ -5,14 +5,17 @@
 
 <div class="tela-login">
     <div class="caixa-login">
-        <div class="marca-login">Porta<span>ria</span></div>
+        <div class="marca-login">
+            <svg th:replace="~{layout :: simbolo}"></svg>
+            <span class="palavra">Porta<span>ria</span></span>
+        </div>
         <p class="lema">Escolha uma senha nova</p>
 
         <div class="cartao">
 
             <div th:if="${erroToken}">
                 <div class="aviso" th:text="${erroToken}"></div>
-                <p class="dica" style="text-align:center">
+                <p class="dica centro">
                     <a th:href="@{/recuperar-senha}">Pedir um novo link</a>
                 </p>
             </div>
@@ -34,7 +37,7 @@
                     <div class="erro-campo" th:if="${#fields.hasErrors('confirmacao')}"
                          th:errors="*{confirmacao}"></div>
                 </div>
-                <button type="submit" style="width:100%">Definir nova senha</button>
+                <button type="submit" class="botao-largo">Definir nova senha</button>
                 <p class="dica">Este link vale uma única vez e expira em 30 minutos.</p>
             </form>
         </div>

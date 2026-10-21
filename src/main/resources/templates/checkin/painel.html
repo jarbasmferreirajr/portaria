@@ -5,9 +5,16 @@
 
 <header th:replace="~{layout :: topo}"></header>
 
-<div class="container">
+<div class="container" id="conteudo">
 
-    <div th:fragment="painel" id="painel">
+    <!-- O atributo data-resultado é como o JavaScript descobre o que acabou de
+         acontecer sem precisar interpretar o texto da tela. O htmx troca este
+         bloco inteiro a cada leitura, e o atributo vem junto. -->
+    <div th:fragment="painel" id="painel"
+         th:attr="data-resultado=${resultado == null ? 'nenhum'
+                   : (resultado.liberado ? 'liberado'
+                   : (resultado.jaPresente ? 'repetido' : 'desconhecido'))}">
+
         <h1 th:text="${evento.nome}">Evento</h1>
         <p class="sub">Painel de portaria &middot; operador
             <strong th:text="${usuarioAutenticado?.nome}">admin</strong></p>
@@ -15,19 +22,33 @@
         <div class="indicadores">
             <div class="indicador destaque">
                 <div class="valor">
-                    <span th:text="${totalPresentes}">0</span><span
-                        style="font-size:1.1rem;color:var(--texto-fraco)"
+                    <span th:text="${totalPresentes}">0</span><span class="total"
                         th:text="'/' + ${totalInscritos}">/0</span>
                 </div>
                 <div class="rotulo">Presentes</div>
+                <!-- <progress> em vez de uma div com largura calculada: o próprio
+                     navegador cuida da proporção, e não sobra estilo embutido. -->
+                <progress class="progresso" th:if="${totalInscritos gt 0}"
+                          th:value="${totalPresentes}" th:max="${totalInscritos}"></progress>
             </div>
             <div class="indicador">
                 <div class="valor" th:text="${totalInscritos - totalPresentes}">0</div>
                 <div class="rotulo">Ainda não chegaram</div>
             </div>
-            <div class="indicador">
-                <div class="valor" th:text="${evento.capacidade - totalPresentes}">0</div>
-                <div class="rotulo">Lotação disponível</div>
+            <!-- A lotação pode ficar negativa: inscrição tardia no dia do evento é
+                 decisão da organização, e o sistema não impede. Mas quem está no
+                 portão precisa ver que passou do limite, não um número negativo
+                 solto na mesma cor dos outros. -->
+            <div class="indicador"
+                 th:classappend="${evento.capacidade - totalPresentes lt 0} ? 'critico'">
+                <div class="valor"
+                     th:text="${evento.capacidade - totalPresentes lt 0}
+                              ? ${totalPresentes - evento.capacidade}
+                              : ${evento.capacidade - totalPresentes}">0</div>
+                <div class="rotulo" th:if="${evento.capacidade - totalPresentes ge 0}">
+                    Lotação disponível</div>
+                <div class="rotulo" th:unless="${evento.capacidade - totalPresentes ge 0}">
+                    Acima da capacidade</div>
             </div>
         </div>
 
@@ -39,59 +60,106 @@
                 <input class="entrada-codigo" type="text" id="codigo" name="codigo"
                        maxlength="10" autocomplete="off" autocapitalize="characters"
                        spellcheck="false" placeholder="ABC123" autofocus>
-                <p class="dica">
+            </form>
+
+            <!-- O retorno fica logo abaixo do campo, dentro do mesmo cartão.
+                 Antes vinha depois do cartão, e o operador precisava desviar o
+                 olho para baixo entre uma pessoa e outra. A altura mínima é fixa
+                 para que o campo não suba e desça a cada leitura -- com a fila
+                 andando, elemento que se mexe é elemento que se erra.
+                 aria-live faz o leitor de tela anunciar o resultado sozinho. -->
+            <div class="retorno" aria-live="assertive">
+
+                <div th:if="${resultado != null}">
+
+                    <div class="resultado ok" th:if="${resultado.liberado}">
+                        <svg class="selo" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                            <circle cx="12" cy="12" r="9.5"/>
+                            <path d="M7.8 12.3l2.8 2.8 5.6-6"/>
+                        </svg>
+                        <div class="resultado-texto">
+                            <div class="titulo">Entrada liberada</div>
+                            <div class="nome-grande" th:text="${resultado.inscricao.nome}">Nome</div>
+                            <div class="detalhe">
+                                <span th:if="${resultado.inscricao.motoclube}"
+                                      th:text="${resultado.inscricao.motoclube} + ' · '">MC</span>
+                                <span th:text="${resultado.inscricao.cidade} ?: 'cidade não informada'">Cidade</span>
+                                &middot; <span class="codigo" th:text="${resultado.inscricao.codigo}">ABC123</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="resultado alerta" th:if="${resultado.jaPresente}">
+                        <svg class="selo" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                            <circle cx="12" cy="12" r="9.5"/>
+                            <path d="M12 7.3v5.4"/>
+                            <path d="M12 16.4v.1"/>
+                        </svg>
+                        <div class="resultado-texto">
+                            <div class="titulo">Já registrado</div>
+                            <div class="nome-grande" th:text="${resultado.inscricao.nome}">Nome</div>
+                            <div class="detalhe">
+                                Entrou às
+                                <strong th:text="${#temporals.format(resultado.momento, 'HH:mm')}">00:00</strong>.
+                                Confira se não é o mesmo comprovante na mão de outra pessoa.
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="resultado erro" th:if="${resultado.naoEncontrado}">
+                        <svg class="selo" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                            <circle cx="12" cy="12" r="9.5"/>
+                            <path d="M9 9l6 6"/>
+                            <path d="M15 9l-6 6"/>
+                        </svg>
+                        <div class="resultado-texto">
+                            <div class="titulo">Código não encontrado</div>
+                            <div class="nome-grande codigo" th:text="${codigoDigitado}">XXX</div>
+                            <div class="detalhe">
+                                Não corresponde a nenhuma inscrição deste evento.
+                                Confirme o código ou faça a inscrição na hora.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <p class="retorno-vazio" th:if="${resultado == null}">
+                    Aguardando o próximo código.
+                </p>
+            </div>
+
+            <div class="rodape-portaria">
+                <p class="dica sem-margem">
                     Digite o código e pressione Enter. Um leitor USB de código de barras
                     funciona sem nenhuma configuração — ele se comporta como teclado.
                 </p>
-            </form>
-        </div>
-
-        <div th:if="${resultado != null}">
-            <div class="resultado ok" th:if="${resultado.liberado}">
-                <div class="titulo">✓ Entrada liberada</div>
-                <div th:text="${resultado.inscricao.nome}">Nome</div>
-                <div class="detalhe">
-                    <span th:if="${resultado.inscricao.motoclube}"
-                          th:text="${resultado.inscricao.motoclube} + ' · '">MC</span>
-                    <span th:text="${resultado.inscricao.cidade} ?: 'cidade não informada'">Cidade</span>
-                </div>
-            </div>
-
-            <div class="resultado alerta" th:if="${resultado.jaPresente}">
-                <div class="titulo">! Já registrado</div>
-                <div th:text="${resultado.inscricao.nome}">Nome</div>
-                <div class="detalhe">
-                    Entrada registrada às
-                    <span th:text="${#temporals.format(resultado.momento, 'HH:mm')}">00:00</span>.
-                    Confira se não é o mesmo comprovante sendo usado por outra pessoa.
-                </div>
-            </div>
-
-            <div class="resultado erro" th:if="${resultado.naoEncontrado}">
-                <div class="titulo">✕ Código não encontrado</div>
-                <div class="detalhe">
-                    <span class="codigo" th:text="${codigoDigitado}">XXX</span>
-                    não corresponde a nenhuma inscrição deste evento.
-                    Confirme o código ou faça a inscrição na hora.
-                </div>
+                <!-- Som ligado por padrão: no portão o operador olha para a pessoa,
+                     não para a tela. O estado fica no navegador do próprio
+                     aparelho, então cada operador escolhe o seu. -->
+                <label class="interruptor" for="som">
+                    <input type="checkbox" id="som" checked>
+                    <span>Aviso sonoro</span>
+                </label>
             </div>
         </div>
 
         <div class="cartao">
             <h2>Últimas entradas</h2>
-            <table th:if="${!#lists.isEmpty(presentes)}">
-                <thead>
-                <tr><th>Hora</th><th>Nome</th><th>Motoclube</th><th>Código</th></tr>
-                </thead>
-                <tbody>
-                <tr th:each="c : ${presentes}">
-                    <td th:text="${#temporals.format(c.registradoEm, 'HH:mm')}">00:00</td>
-                    <td th:text="${c.inscricao.nome}">Nome</td>
-                    <td th:text="${c.inscricao.motoclube} ?: '—'">—</td>
-                    <td class="codigo" th:text="${c.inscricao.codigo}">ABC123</td>
-                </tr>
-                </tbody>
-            </table>
+            <div class="tabela-rolavel">
+                <table th:if="${!#lists.isEmpty(presentes)}">
+                    <thead>
+                    <tr><th>Hora</th><th>Nome</th><th>Motoclube</th><th>Código</th></tr>
+                    </thead>
+                    <tbody>
+                    <tr th:each="c : ${presentes}">
+                        <td th:text="${#temporals.format(c.registradoEm, 'HH:mm')}">00:00</td>
+                        <td th:text="${c.inscricao.nome}">Nome</td>
+                        <td th:text="${c.inscricao.motoclube} ?: '—'">—</td>
+                        <td class="codigo" th:text="${c.inscricao.codigo}">ABC123</td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
             <p class="vazio" th:if="${#lists.isEmpty(presentes)}">
                 Ninguém passou pela portaria ainda.
             </p>
@@ -100,6 +168,7 @@
 
 </div>
 
+<script th:src="@{/js/retorno-sonoro.js}" defer></script>
 <script>
     // Devolve o foco ao campo depois de cada troca de fragmento,
     // para que a fila ande sem o operador precisar clicar.
@@ -107,6 +176,21 @@
         var campo = document.getElementById('codigo');
         if (campo) { campo.value = ''; campo.focus(); }
     });
+
+    // Falha de rede não pode passar despercebida: sem isto, a tela fica
+    // exatamente como estava e o operador acha que registrou a entrada.
+    function avisarFalha() {
+        var retorno = document.querySelector('.retorno');
+        if (!retorno) { return; }
+        retorno.innerHTML =
+            '<div class="resultado erro"><div class="resultado-texto">' +
+            '<div class="titulo">Sem resposta do servidor</div>' +
+            '<div class="detalhe">A entrada <strong>não</strong> foi registrada. ' +
+            'Verifique a conexão e leia o código de novo.</div>' +
+            '</div></div>';
+    }
+    document.body.addEventListener('htmx:sendError', avisarFalha);
+    document.body.addEventListener('htmx:responseError', avisarFalha);
 </script>
 
 </body>

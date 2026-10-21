@@ -23,3 +23,6 @@
 *.jpg binary
 *.pdf binary
 *.jar binary
+*.woff2 binary
+*.woff  binary
+*.ttf   binary

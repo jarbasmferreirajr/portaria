@@ -117,6 +117,81 @@ modo que a mesma migração roda no H2 hoje e no PostgreSQL depois.
 
 ---
 
+## Identidade visual
+
+O sistema tinha um tema escuro competente e genérico: cartões de canto
+arredondado, cinza neutro, um âmbar qualquer. Funcionava e não dizia nada. A
+identidade **"Cancela · noite fria"** existe para que cada decisão visual tenha
+um motivo de domínio, e não de gosto.
+
+**A marca é uma cancela erguida** — poste, braço inclinado, luz na ponta. Três
+formas, que é o que sobrevive a 20 px na aba do navegador. A escolha foge de
+caveira, guidão e chama: marcas assim prendem o sistema a um único tipo de
+evento, e ele também atende encontro cultural, feira e festa de clube. É
+desenhada em SVG dentro do HTML, sem biblioteca de ícones e sem requisição
+extra, e puxa as cores da folha de estilo — então acompanha o tema sozinha.
+
+**Três decisões se repetem em toda tela**, e é a repetição que separa um
+projeto de um tema pronto:
+
+1. **Faixa de risco.** A diagonal âmbar e preta é barreira — cancela, fita de
+   isolamento, portão. Aparece no topo da barra superior, no cartão de login e
+   no indicador que importa. Em nenhum outro lugar: motivo que aparece em tudo
+   deixa de ser motivo e vira papel de parede.
+2. **Cantos retos de 4 px.** Placa metálica, não cápsula. A única exceção são
+   os itens da barra superior, redondos de propósito — cápsula lê como
+   "estado/sessão", e nada mais na interface é estado.
+3. **Tipografia de sinalização.** Oswald em caixa alta com entreletra aberta em
+   títulos, rótulos de campo, cabeçalhos de tabela e botões. Inter só no texto
+   corrido, onde ler importa mais que anunciar.
+
+**Cada cor tem uma função só**, e é por isso que são quatro e não uma paleta:
+
+| Cor | Papel |
+|---|---|
+| Âmbar `#FFB224` | A marca e a ação principal |
+| Lima `#C9F23F` | **Só** liberação de entrada na portaria |
+| Verde `#4FB477` | Confirmações comuns ("senha alterada"), discreto para não roubar o significado do lima |
+| Vermelho `#F2564B` | Recusa e perigo |
+
+**Três fontes embarcadas, 116 KB, nenhum CDN.** A portaria de um evento ao ar
+livre é justamente onde falta sinal, e a apresentação também precisa rodar sem
+internet. São arquivos variáveis com o subconjunto latino, que já cobre todos os
+acentos do português. A escolha da monoespaçada é funcional, não estética: na
+JetBrains Mono o zero é cortado, o `1` tem base e o `I` tem serifa, então `0/O` e
+`1/l/I` não se confundem quando o operador digita o código lido do celular do
+participante.
+
+**Nenhum `style=` nos templates.** Havia 17 espalhados, incluindo a mesma caixa
+verde de sucesso escrita à mão em sete arquivos. Estilo embutido no HTML não
+aparece na folha, não pode ser reaproveitado e precisa ser corrigido arquivo por
+arquivo quando o tema muda. O Thymeleaf monta o HTML; o visual está todo no CSS.
+
+### Acessibilidade
+
+Não é item de conformidade: é o que faz a tela funcionar no escuro, de luva e com
+fila andando.
+
+- **Cor nunca decide sozinha.** Lima e âmbar são próximos para quem tem
+  daltonismo vermelho-verde, então todo resultado leva ícone (✓, !, ✕) e rótulo
+  escrito. A cor reforça, nunca informa sozinha.
+- **A área de retorno tem altura mínima fixa**, para o campo não subir e descer a
+  cada leitura. Elemento que se mexe é elemento que se erra.
+- **`aria-live="assertive"`** no retorno do check-in: o leitor de tela anuncia o
+  resultado sem o operador procurar.
+- **Aviso sonoro** com três sinais distintos (dois tons subindo para liberado,
+  dois iguais para já registrado, um grave longo para desconhecido), gerados pelo
+  próprio navegador — sem arquivo de áudio e sem internet. No portão o operador
+  olha para a pessoa, não para a tela.
+- **Falha de rede aparece na tela.** Antes, se a requisição não chegasse, nada
+  mudava e o operador achava que tinha registrado a entrada.
+- **`color-scheme: dark`**, que faz o calendário nativo dos campos de data abrir
+  escuro em vez de branco sobre a página escura.
+- Foco visível igual em toda a aplicação, atalho "Ir para o conteúdo" e
+  `prefers-reduced-motion` respeitado.
+
+---
+
 ## Atualização para Spring Boot 4 e Java 25
 
 O projeto nasceu em Spring Boot 3.5 com Java 21. O suporte OSS do 3.5 encerrou em

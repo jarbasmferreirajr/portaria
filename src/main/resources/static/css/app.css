@@ -1,181 +1,357 @@
 /* Portaria :: folha de estilo única, sem framework.
 
-   Tema escuro de alto contraste. A tela de check-in é usada ao ar livre, à
-   noite, com o operador olhando de relance entre um participante e outro --
-   contraste alto e tipografia grande valem mais que sutileza visual aqui.
+   IDENTIDADE "CANCELA · NOITE FRIA"
+   ---------------------------------
+   O sistema fala a língua de equipamento de trabalho noturno, não de
+   aplicativo de escritório. Três decisões se repetem em toda tela e são
+   o que separa este projeto de um tema escuro genérico:
+
+     1. FAIXA DE RISCO. A diagonal âmbar e preta é barreira -- cancela,
+        fita de isolamento, portão. Aparece no topo da página e no
+        indicador que importa, nunca em mais de dois lugares por tela.
+     2. CANTOS RETOS. 4 px, não 10. Placa metálica, não cápsula.
+     3. TIPOGRAFIA DE SINALIZAÇÃO. Oswald em caixa alta com entreletra
+        aberta em títulos, rótulos e botões. Inter só no texto corrido,
+        onde ler importa mais que anunciar.
+
+   A cor tem papel único por função, e é por isso que são quatro e não
+   uma paleta inteira:
+     âmbar  -> a marca e a ação principal
+     lima   -> SÓ liberação de entrada na portaria, em nenhum outro lugar
+     verde  -> confirmações comuns ("senha alterada"), discreto de
+               propósito para não roubar o significado do lima
+     vermelho -> recusa e perigo
+
+   O contraste é alto porque a tela de check-in é usada ao ar livre, à
+   noite, com o operador olhando de relance entre um participante e
+   outro. Cor nunca decide sozinha: todo resultado leva ícone e rótulo
+   escrito, porque lima e âmbar são próximos para quem tem daltonismo
+   vermelho-verde.
 
    As propriedades e os seletores do CSS são vocabulário reservado da
-   linguagem; os nomes de classe e de variável estão em português. */
+   linguagem; os nomes de classe e de variável estão em português.
 
-:root {
-  --fundo:        #14161a;
-  --superficie:   #1d2026;
-  --superficie-2: #262a32;
-  --borda:        #333944;
-  --texto:        #e8eaed;
-  --texto-fraco:  #9aa1ad;
-  --destaque:     #f0a500;
-  --destaque-esc: #c78700;
-  --ok:           #2fbf71;
-  --alerta:       #f0a500;
-  --erro:         #e05263;
-  --raio:         10px;
+   Organização do arquivo:
+     1. Fontes embarcadas
+     2. Fichas de projeto (cores, espaços, tamanhos, raios, sombras)
+     3. Base e tipografia
+     4. Estrutura (barra superior, container, cartões, grades)
+     5. Formulários
+     6. Componentes (indicadores, tabelas, etiquetas, avisos, vazios)
+     7. Telas específicas (login, check-in, código, confirmação)
+     8. Utilitários
+     9. Responsivo e preferências do sistema                           */
+
+
+/* ===================================================================
+   1. FONTES EMBARCADAS
+   -------------------------------------------------------------------
+   Os arquivos ficam em /static/fontes, dentro do repositório. Nenhuma
+   chamada a Google Fonts ou CDN: a portaria de um evento ao ar livre é
+   exatamente onde o sinal falta, e a apresentação também precisa rodar
+   sem internet. São arquivos variáveis (um só arquivo cobre toda a
+   faixa de pesos) com o subconjunto latino, que já tem todos os acentos
+   do português. Somados, 116 KB. Licenças: /fontes/LEIA-ME.
+   =================================================================== */
+
+@font-face {
+  font-family: "Oswald";
+  font-style: normal;
+  font-weight: 200 700;
+  font-display: swap;
+  src: url("/fontes/oswald-latin-wght-normal.woff2") format("woff2");
 }
 
+@font-face {
+  font-family: "Inter";
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: swap;
+  src: url("/fontes/inter-latin-wght-normal.woff2") format("woff2");
+}
+
+@font-face {
+  font-family: "JetBrains Mono";
+  font-style: normal;
+  font-weight: 100 800;
+  font-display: swap;
+  src: url("/fontes/jetbrains-mono-latin-wght-normal.woff2") format("woff2");
+}
+
+
+/* ===================================================================
+   2. FICHAS DE PROJETO
+   -------------------------------------------------------------------
+   Toda medida repetida na interface tem um nome aqui. O ganho não é
+   estético: quando o espaçamento vem de uma escala de oito valores em
+   vez de um número digitado em cada regra, telas feitas em semanas
+   diferentes continuam parecendo a mesma aplicação.
+   =================================================================== */
+
+:root {
+  /* Esquema de cor declarado para o navegador. É o que faz o calendário
+     nativo do campo de data, as barras de rolagem e os menus de select
+     nascerem escuros em vez de brancos sobre a página escura. */
+  color-scheme: dark;
+
+  /* --- cores --- */
+  --fundo:        #0C0E11;   /* noite fria    */
+  --superficie:   #14181D;   /* ardósia       */
+  --superficie-2: #1C2127;   /* ardósia clara */
+  --borda:        #262C34;
+  --borda-forte:  #343C46;
+  --texto:        #E9EBEE;
+  --texto-fraco:  #8C939C;
+
+  --destaque:     #FFB224;   /* âmbar de obra -- marca e ação principal */
+  --destaque-esc: #E09612;
+  --tinta:        #0C0E11;   /* texto sobre o âmbar */
+
+  --liberado:     #C9F23F;   /* lima refletiva -- SÓ a portaria */
+  --ok:           #4FB477;   /* verde discreto -- confirmações comuns */
+  --alerta:       #FFB224;
+  --erro:         #F2564B;
+
+  /* O motivo da identidade, declarado uma vez. Pintado como imagem de
+     fundo sobre a cor do elemento, por isso as faixas vazias são
+     transparentes em vez de uma cor fixa. */
+  --risco: repeating-linear-gradient(135deg,
+            var(--destaque) 0 12px, rgba(0, 0, 0, 0) 12px 24px);
+
+  /* --- espaçamento: escala de 4 px --- */
+  --espaco-1:  4px;
+  --espaco-2:  8px;
+  --espaco-3: 12px;
+  --espaco-4: 16px;
+  --espaco-5: 24px;
+  --espaco-6: 32px;
+  --espaco-7: 48px;
+  --espaco-8: 64px;
+
+  /* --- tamanhos de texto --- */
+  --fonte-xs:   .6875rem;  /* 11 px -- rótulos de sinalização  */
+  --fonte-sm:   .8125rem;  /* 13 px -- apoio, dicas            */
+  --fonte-base: .9375rem;  /* 15 px -- corpo, formulários      */
+  --fonte-md:   1rem;
+  --fonte-lg:   1.25rem;   /* 20 px -- títulos de cartão       */
+  --fonte-xl:   2rem;      /* 32 px -- título de página        */
+  --fonte-2xl:  2.25rem;   /* 36 px -- contadores              */
+  --fonte-3xl:  2.5rem;    /* 40 px -- código de entrada       */
+
+  /* --- famílias --- */
+  --familia-titulo: "Oswald", "Arial Narrow", system-ui, sans-serif;
+  --familia-interface: "Inter", "Segoe UI", system-ui, -apple-system, Roboto, Arial, sans-serif;
+  --familia-mono: "JetBrains Mono", "Consolas", "SF Mono", ui-monospace, monospace;
+
+  /* Entreletra dos rótulos de sinalização. Um valor só, para que placa
+     nenhuma fique mais aberta que a vizinha. */
+  --entreletra-placa: .2em;
+
+  /* --- raios: retos, de placa, não de cápsula --- */
+  --raio-sm:    3px;
+  --raio-md:    4px;
+  --raio-lg:    6px;
+  --raio-cheio: 999px;
+  --raio: var(--raio-md);   /* nome antigo, mantido por compatibilidade */
+
+  /* --- sombras --- */
+  --sombra-1: 0 1px 2px rgba(0, 0, 0, .4);
+  --sombra-2: 0 4px 16px rgba(0, 0, 0, .45);
+
+  /* --- transição única, para que tudo responda no mesmo ritmo --- */
+  --transicao: .15s ease;
+}
+
+
+/* ===================================================================
+   3. BASE E TIPOGRAFIA
+   =================================================================== */
+
 * { box-sizing: border-box; }
+
+html {
+  scrollbar-width: thin;
+  scrollbar-color: var(--borda-forte) transparent;
+}
 
 body {
   margin: 0;
   background: var(--fundo);
   color: var(--texto);
-  font-family: "Segoe UI", system-ui, -apple-system, Roboto, Arial, sans-serif;
+  font-family: var(--familia-interface);
+  font-size: var(--fonte-base);
   line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
 }
+
+::selection { background: var(--destaque); color: var(--tinta); }
 
 a { color: var(--destaque); }
+a:hover { color: var(--destaque-esc); }
 
-.container { max-width: 980px; margin: 0 auto; padding: 24px 20px 64px; }
-.container-estreito { max-width: 560px; margin: 0 auto; padding: 24px 20px 64px; }
+/* Títulos em Oswald, caixa alta. A condensada aguenta nome de evento
+   longo ("3º Encontro de Motociclistas de Gaspar") sem quebrar em três
+   linhas, que era o que a Inter fazia no celular. */
+h1 {
+  font-family: var(--familia-titulo);
+  font-size: var(--fonte-xl);
+  font-weight: 600;
+  letter-spacing: .02em;
+  text-transform: uppercase;
+  line-height: 1.08;
+  margin: var(--espaco-6) 0 var(--espaco-1);
+}
+h2 {
+  font-family: var(--familia-titulo);
+  font-size: var(--fonte-lg);
+  font-weight: 500;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  margin: var(--espaco-6) 0 var(--espaco-3);
+}
+
+/* Linha de apoio sob o título. A largura é limitada em caracteres, não
+   em pixels: linha longa demais faz o olho perder o começo da
+   seguinte. */
+.sub {
+  color: var(--texto-fraco);
+  max-width: 68ch;
+  margin: 0 0 var(--espaco-5);
+}
+
+/* Foco visível, igual em toda a aplicação. Quem opera a portaria com o
+   teclado (é mais rápido que o toque, com a fila andando) precisa ver
+   onde está. */
+:focus-visible {
+  outline: 2px solid var(--destaque);
+  outline-offset: 2px;
+}
+
+
+/* ===================================================================
+   4. ESTRUTURA
+   =================================================================== */
+
+.container          { max-width: 980px; margin: 0 auto; padding: var(--espaco-5) var(--espaco-5) var(--espaco-8); }
+.container-estreito { max-width: 560px; margin: 0 auto; padding: var(--espaco-5) var(--espaco-5) var(--espaco-8); }
 
 /* ---------- barra superior ---------- */
+/* Fixa no topo: nas listas longas de inscritos o acesso ao painel e à
+   conta não deveria exigir rolar de volta. */
 .topo {
-  display: flex; align-items: center; justify-content: space-between;
-  gap: 16px; padding: 14px 20px;
-  background: var(--superficie); border-bottom: 1px solid var(--borda);
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--espaco-4);
+  padding: calc(var(--espaco-3) + 6px) var(--espaco-5) var(--espaco-3);
+  background: var(--superficie);
+  border-bottom: 1px solid var(--borda);
+  box-shadow: var(--sombra-1);
 }
+
+/* A faixa de risco da identidade, na primeira coisa que a página
+   mostra. Pseudo-elemento para não entrar no fluxo flex da barra. */
+.topo::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 6px;
+  background-color: var(--superficie);
+  background-image: var(--risco);
+}
+
 .marca {
-  font-weight: 700; font-size: 1.15rem; letter-spacing: .08em;
-  text-transform: uppercase; color: var(--texto); text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--espaco-2);
+  font-family: var(--familia-titulo);
+  font-weight: 600;
+  font-size: 1.125rem;
+  letter-spacing: .11em;
+  text-transform: uppercase;
+  color: var(--texto);
+  text-decoration: none;
 }
-.marca span { color: var(--destaque); }
-.topo nav { display: flex; align-items: center; gap: 18px; font-size: .9rem; }
+.marca:hover { color: var(--texto); }
+
+/* A segunda metade do nome em âmbar. O invólucro .palavra existe porque
+   a marca é um container flex: sem ele, "Porta" e "ria" viram dois
+   itens separados e o espaçamento entra no meio da palavra. */
+.palavra { display: inline; }
+.palavra span { color: var(--destaque); }
+
+/* O símbolo: uma cancela erguida -- poste, braço inclinado, luz na
+   ponta. Três formas, que é o que sobrevive a 20 px na aba do
+   navegador. A escolha foge de caveira, guidão e chama: marcas assim
+   prendem o sistema a um único tipo de evento, e ele também atende
+   encontro cultural, feira e festa de clube. Desenhado em SVG dentro do
+   HTML -- nenhuma biblioteca de ícones, nenhuma requisição extra, e as
+   cores vêm das fichas desta folha. */
+.simbolo { flex: none; }
+.simbolo .poste,
+.simbolo .luz  { fill: var(--destaque); }
+.simbolo .chao,
+.simbolo .braco { fill: var(--texto); }
+
+.marca .simbolo { width: 25px; height: 25px; }
+
+.topo nav {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--espaco-2);
+}
 .topo nav a:not(.item-barra) { color: var(--texto-fraco); text-decoration: none; }
 .topo nav a:not(.item-barra):hover { color: var(--texto); }
 .topo form { margin: 0; }
 
-h1 { font-size: 1.6rem; margin: 28px 0 4px; }
-h2 { font-size: 1.15rem; margin: 32px 0 12px; }
-.sub { color: var(--texto-fraco); margin: 0 0 24px; }
-
-/* ---------- cartões ---------- */
-.cartao {
-  background: var(--superficie); border: 1px solid var(--borda);
-  border-radius: var(--raio); padding: 20px; margin-bottom: 18px;
+/* Atalho para o conteúdo, visível só quando recebe foco pelo teclado. */
+.pular-para-conteudo {
+  position: absolute;
+  left: -9999px;
+  top: var(--espaco-2);
+  z-index: 50;
+  padding: var(--espaco-2) var(--espaco-4);
+  background: var(--destaque);
+  color: var(--tinta);
+  border-radius: var(--raio-sm);
+  font-weight: 600;
+  text-decoration: none;
 }
-.cartao h2 { margin-top: 0; }
-
-.grade { display: grid; gap: 18px; }
-@media (min-width: 760px) { .grade-2 { grid-template-columns: 1fr 1fr; } }
-
-/* ---------- formulários ---------- */
-label { display: block; font-size: .82rem; color: var(--texto-fraco); margin-bottom: 5px; }
-input, textarea, select {
-  width: 100%; padding: 10px 12px; font-size: .95rem; font-family: inherit;
-  color: var(--texto); background: var(--superficie-2);
-  border: 1px solid var(--borda); border-radius: 8px;
-}
-input:focus, textarea:focus { outline: 2px solid var(--destaque); border-color: transparent; }
-.campo { margin-bottom: 14px; }
-.linha { display: grid; gap: 14px; }
-@media (min-width: 620px) { .linha-2 { grid-template-columns: 1fr 1fr; } }
-
-button, .botao {
-  display: inline-block; padding: 11px 20px; font-size: .95rem; font-weight: 600;
-  font-family: inherit; color: #1a1205; background: var(--destaque);
-  border: none; border-radius: 8px; cursor: pointer; text-decoration: none;
-}
-button:hover, .botao:hover { background: var(--destaque-esc); }
-.botao-secundario {
-  background: transparent; color: var(--texto);
-  border: 1px solid var(--borda);
-}
-.botao-secundario:hover { background: var(--superficie-2); }
-.erro-campo { color: var(--erro); font-size: .8rem; margin-top: 4px; }
-
-/* ---------- indicadores ---------- */
-.indicadores { display: flex; flex-wrap: wrap; gap: 12px; margin: 18px 0; }
-.indicador {
-  flex: 1 1 150px; background: var(--superficie); border: 1px solid var(--borda);
-  border-radius: var(--raio); padding: 16px 18px;
-}
-.indicador .valor { font-size: 2rem; font-weight: 700; line-height: 1.1; }
-.indicador .rotulo { color: var(--texto-fraco); font-size: .78rem; text-transform: uppercase; letter-spacing: .06em; }
-.indicador.destaque .valor { color: var(--destaque); }
-
-/* ---------- tabela ---------- */
-table { width: 100%; border-collapse: collapse; font-size: .9rem; }
-th, td { text-align: left; padding: 10px 8px; border-bottom: 1px solid var(--borda); }
-th { color: var(--texto-fraco); font-size: .75rem; text-transform: uppercase; letter-spacing: .06em; }
-tbody tr:hover { background: var(--superficie-2); }
-.vazio { color: var(--texto-fraco); font-style: italic; padding: 18px 0; }
-
-/* ---------- código de entrada ---------- */
-.codigo {
-  font-family: "Consolas", "SF Mono", ui-monospace, monospace;
-  letter-spacing: .18em; font-weight: 700;
-}
-.codigo-grande {
-  font-size: 2.6rem; color: var(--destaque); text-align: center;
-  padding: 22px; background: var(--superficie-2);
-  border: 1px dashed var(--destaque); border-radius: var(--raio); margin: 18px 0;
-}
-
-/* ---------- check-in ---------- */
-.entrada-codigo {
-  width: 100%; font-size: 2rem; text-align: center; padding: 18px;
-  letter-spacing: .3em; text-transform: uppercase;
-  font-family: "Consolas", "SF Mono", ui-monospace, monospace;
-}
-.resultado {
-  border-radius: var(--raio); padding: 18px 20px; margin: 16px 0;
-  border-left: 6px solid var(--borda); background: var(--superficie-2);
-}
-.resultado .titulo { font-size: 1.25rem; font-weight: 700; margin-bottom: 2px; }
-.resultado .detalhe { color: var(--texto-fraco); font-size: .9rem; }
-.resultado.ok     { border-left-color: var(--ok);     }
-.resultado.ok .titulo     { color: var(--ok); }
-.resultado.alerta { border-left-color: var(--alerta); }
-.resultado.alerta .titulo { color: var(--alerta); }
-.resultado.erro   { border-left-color: var(--erro);   }
-.resultado.erro .titulo   { color: var(--erro); }
-
-.aviso {
-  background: rgba(224, 82, 99, .12); border: 1px solid var(--erro);
-  color: #ffb3bd; padding: 12px 16px; border-radius: 8px; margin-bottom: 16px; font-size: .9rem;
-}
-.dica { color: var(--texto-fraco); font-size: .82rem; margin-top: 10px; }
-
-/* ---------- login ---------- */
-.tela-login { display: flex; align-items: center; justify-content: center; min-height: 100vh; padding: 20px; }
-.caixa-login { width: 100%; max-width: 380px; }
-.caixa-login .marca-login {
-  text-align: center; font-size: 1.8rem; font-weight: 700;
-  letter-spacing: .12em; text-transform: uppercase; margin-bottom: 6px;
-}
-.caixa-login .marca-login span { color: var(--destaque); }
-.caixa-login .lema { text-align: center; color: var(--texto-fraco); font-size: .85rem; margin-bottom: 26px; }
-.credenciais-demo {
-  margin-top: 18px; padding: 12px; text-align: center; font-size: .8rem;
-  color: var(--texto-fraco); background: var(--superficie-2); border-radius: 8px;
-}
+.pular-para-conteudo:focus { left: var(--espaco-4); color: var(--tinta); }
 
 /* ---------- itens da barra superior ---------- */
-/* Os três itens (Eventos, conta, Sair) compartilham a MESMA geometria:
-   altura, arredondamento, fonte e espaçamento. Antes eram um link puro, uma
-   cápsula e um retângulo -- três formas para funções do mesmo nível, o que
-   fazia a barra parecer montada por pessoas diferentes.
-   A única distinção que sobra é o ícone da conta, que marca de quem é a sessão. */
+/* Os três itens (Eventos, conta, Sair) compartilham a MESMA geometria.
+   Antes eram um link puro, uma cápsula e um retângulo -- três formas
+   para funções do mesmo nível, o que fazia a barra parecer montada por
+   pessoas diferentes. A única distinção que sobra é o ícone da conta,
+   que marca de quem é a sessão.
+   São o único elemento redondo da interface, de propósito: cápsula lê
+   como "estado/sessão", e nada mais aqui é estado. */
 .item-barra {
-  display: inline-flex; align-items: center; gap: 8px;
-  height: 34px; padding: 0 14px; box-sizing: border-box;
-  border: 1px solid var(--borda); border-radius: 999px;
-  background: transparent; color: var(--texto);
-  font-size: .88rem; font-weight: 500; font-family: inherit; line-height: 1;
-  text-decoration: none; cursor: pointer; white-space: nowrap;
-  transition: background .15s, border-color .15s, color .15s;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--espaco-2);
+  height: 34px;
+  padding: 0 var(--espaco-3);
+  border: 1px solid var(--borda);
+  border-radius: var(--raio-cheio);
+  background: transparent;
+  color: var(--texto);
+  font-size: var(--fonte-sm);
+  font-weight: 500;
+  font-family: var(--familia-interface);
+  line-height: 1;
+  text-decoration: none;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background var(--transicao), border-color var(--transicao), color var(--transicao);
 }
-.item-barra:hover { background: var(--superficie-2); border-color: var(--destaque); }
-.item-barra:focus-visible { outline: 2px solid var(--destaque); outline-offset: 2px; }
+.item-barra:hover { background: var(--superficie-2); border-color: var(--destaque); color: var(--texto); }
 
 .item-barra svg {
   width: 17px; height: 17px; flex: none;
@@ -183,85 +359,729 @@ tbody tr:hover { background: var(--superficie-2); }
   stroke-width: 1.8; stroke-linecap: round;
 }
 .item-barra span {
-  max-width: 18ch; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  max-width: 18ch;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
-/* ---------- etiqueta de estado ---------- */
-.etiqueta {
-  display: inline-block; margin-left: 6px;
-  padding: 2px 8px; border-radius: 999px;
-  font-size: .68rem; text-transform: uppercase; letter-spacing: .08em;
-  color: var(--alerta); border: 1px solid var(--alerta);
-  background: rgba(240, 165, 0, .1);
-  vertical-align: middle;
+/* ---------- cartões e grades ---------- */
+.cartao {
+  background: var(--superficie);
+  border: 1px solid var(--borda);
+  border-radius: var(--raio-md);
+  padding: var(--espaco-5);
+  margin-bottom: var(--espaco-4);
+}
+.cartao h2 { margin-top: 0; }
+.cartao > :last-child { margin-bottom: 0; }
+
+.grade { display: grid; gap: var(--espaco-4); }
+@media (min-width: 760px) { .grade-2 { grid-template-columns: 1fr 1fr; align-items: start; } }
+
+
+/* ===================================================================
+   5. FORMULÁRIOS
+   =================================================================== */
+
+/* Rótulo de campo = rótulo de placa. É o lugar onde a tipografia da
+   identidade mais se repete, e o que dá unidade às telas de cadastro. */
+label {
+  display: block;
+  font-family: var(--familia-titulo);
+  font-size: var(--fonte-xs);
+  font-weight: 500;
+  letter-spacing: var(--entreletra-placa);
+  text-transform: uppercase;
+  color: var(--texto-fraco);
+  margin-bottom: var(--espaco-2);
 }
 
-/* ---------- eco legível dos campos de data ---------- */
-/* Confirma por extenso o que o calendário do navegador selecionou.
-   Fica vazio (e sem ocupar espaço) enquanto não há data escolhida. */
+input, textarea, select {
+  width: 100%;
+  padding: 10px var(--espaco-3);
+  font-size: var(--fonte-base);
+  font-family: var(--familia-interface);
+  color: var(--texto);
+  background: var(--superficie-2);
+  border: 1px solid var(--borda);
+  border-radius: var(--raio-sm);
+  transition: border-color var(--transicao);
+}
+input:hover, textarea:hover, select:hover { border-color: var(--borda-forte); }
+input:focus, textarea:focus, select:focus {
+  outline: 2px solid var(--destaque);
+  outline-offset: 0;
+  border-color: transparent;
+}
+textarea { resize: vertical; }
+
+/* O ícone do calendário nasce preto sobre fundo escuro em alguns
+   navegadores; invertê-lo é mais simples e previsível que substituí-lo. */
+::-webkit-calendar-picker-indicator { filter: invert(.85); cursor: pointer; }
+
+.campo { margin-bottom: var(--espaco-4); }
+.linha { display: grid; gap: var(--espaco-3); }
+@media (min-width: 620px) { .linha-2 { grid-template-columns: 1fr 1fr; } }
+
+/* Botão de formulário: Oswald em caixa alta, menor que a ação
+   principal. Fica claramente da mesma família que ela, sem competir. */
+button, .botao {
+  display: inline-block;
+  padding: 11px var(--espaco-5);
+  font-family: var(--familia-titulo);
+  font-size: var(--fonte-base);
+  font-weight: 500;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  color: var(--tinta);
+  background: var(--destaque);
+  border: none;
+  border-radius: var(--raio-md);
+  cursor: pointer;
+  text-decoration: none;
+  transition: background var(--transicao);
+}
+button:hover, .botao:hover { background: var(--destaque-esc); color: var(--tinta); }
+
+.botao-secundario {
+  background: transparent;
+  color: var(--texto);
+  border: 1px solid var(--borda);
+}
+.botao-secundario:hover { background: var(--superficie-2); color: var(--texto); border-color: var(--borda-forte); }
+
+.erro-campo { color: var(--erro); font-size: var(--fonte-sm); margin-top: var(--espaco-1); }
+
+/* Eco legível dos campos de data: confirma por extenso o que o
+   calendário do navegador selecionou. Fica vazio -- e sem ocupar
+   espaço -- enquanto não há data escolhida. */
 .eco-data {
   display: block;
-  margin-top: 6px;
-  font-size: .78rem;
+  margin-top: var(--espaco-1);
+  font-size: var(--fonte-sm);
   color: var(--texto-fraco);
   min-height: 0;
 }
-.eco-data.preenchido {
-  color: var(--destaque);
+.eco-data.preenchido { color: var(--destaque); }
+.eco-data.preenchido::before { content: "✓ "; }
+
+
+/* ===================================================================
+   6. COMPONENTES
+   =================================================================== */
+
+/* Rótulo de sinalização. Serve ao indicador e a qualquer lugar que
+   precise anunciar um dado sem competir com ele. */
+.rotulo {
+  font-family: var(--familia-titulo);
+  font-size: var(--fonte-xs);
+  font-weight: 500;
+  letter-spacing: var(--entreletra-placa);
+  text-transform: uppercase;
+  color: var(--texto-fraco);
 }
-.eco-data.preenchido::before {
-  content: "✓ ";
+
+/* ---------- indicadores numéricos ---------- */
+.indicadores {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--espaco-3);
+  margin: var(--espaco-4) 0;
+}
+.indicador {
+  position: relative;
+  flex: 1 1 150px;
+  background: var(--superficie);
+  border: 1px solid var(--borda);
+  border-radius: var(--raio-md);
+  padding: var(--espaco-5) var(--espaco-4) var(--espaco-4);
+  overflow: hidden;
+}
+.indicador .valor {
+  font-family: var(--familia-titulo);
+  font-size: var(--fonte-2xl);
+  font-weight: 600;
+  line-height: 1.08;
+  /* Números de largura fixa: o contador de presentes sobe durante a
+     portaria, e sem isto o texto ao lado dança a cada entrada. */
+  font-variant-numeric: tabular-nums;
+}
+.indicador .valor .total {
+  font-size: var(--fonte-lg);
+  font-weight: 500;
+  color: var(--texto-fraco);
+}
+.indicador .rotulo { display: block; }
+
+/* A faixa de risco no indicador que importa, em vez de só trocar a cor
+   do número: marca a hierarquia de longe, ou de relance. */
+.indicador.destaque .valor { color: var(--destaque); }
+.indicador.destaque::before,
+.indicador.critico::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 6px;
+  background-color: var(--superficie);
+  background-image: var(--risco);
+}
+/* Lotação estourada: inscrição tardia no dia do evento é decisão da
+   organização e o sistema não impede, mas quem está no portão precisa
+   ver que passou do limite. */
+.indicador.critico .valor { color: var(--erro); }
+.indicador.critico::before {
+  background-image: repeating-linear-gradient(135deg,
+                     var(--erro) 0 12px, rgba(0, 0, 0, 0) 12px 24px);
+}
+
+/* Barra de proporção dos presentes. <progress> em vez de uma div com
+   largura calculada: o próprio navegador cuida da proporção, e não
+   sobra estilo embutido no template. */
+.progresso {
+  appearance: none;
+  -webkit-appearance: none;
+  display: block;
+  width: 100%;
+  height: 5px;
+  margin-top: var(--espaco-2);
+  border: none;
+  background: var(--superficie-2);
+  border-radius: var(--raio-cheio);
+  overflow: hidden;
+}
+.progresso::-webkit-progress-bar   { background: var(--superficie-2); }
+.progresso::-webkit-progress-value { background: var(--destaque); }
+.progresso::-moz-progress-bar      { background: var(--destaque); }
+
+/* ---------- tabelas ---------- */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--fonte-base);
+  font-variant-numeric: tabular-nums;
+}
+th, td {
+  text-align: left;
+  padding: 10px var(--espaco-2);
+  border-bottom: 1px solid var(--borda);
+}
+th {
+  font-family: var(--familia-titulo);
+  color: var(--texto-fraco);
+  font-size: var(--fonte-xs);
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: var(--entreletra-placa);
+}
+tbody tr:last-child td { border-bottom: none; }
+tbody tr:hover { background: var(--superficie-2); }
+
+/* No celular a tabela de inscritos não cabe na largura da tela. Em vez
+   de encolher a fonte até o ilegível, o invólucro rola na horizontal. */
+.tabela-rolavel { overflow-x: auto; }
+
+/* ---------- lista de pessoas ---------- */
+/* A equipe do evento era uma <table>, e não devia ser: tabela serve a
+   dado que se compara coluna a coluna. Aqui cada linha é uma pessoa com
+   uma ação ao lado -- nada é comparado entre linhas, e a largura rígida
+   da célula espremia nome e função em duas e três linhas no celular.
+   Como lista flexível, cada bloco ocupa o que precisa e a confirmação
+   de remoção cabe dentro da linha em vez de vazar para fora dela. */
+.lista-pessoas { list-style: none; margin: 0; padding: 0; }
+
+.pessoa {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--espaco-2) var(--espaco-4);
+  padding: var(--espaco-3) 0;
+  border-bottom: 1px solid var(--borda);
+}
+.pessoa:first-child { padding-top: 0; }
+.pessoa:last-child  { padding-bottom: 0; border-bottom: none; }
+
+.pessoa-dados { flex: 1 1 180px; min-width: 0; }
+.pessoa-nome  { font-weight: 600; }
+.pessoa-dados .apoio { display: block; }
+
+.pessoa-funcao {
+  flex: 0 1 auto;
+  color: var(--texto-fraco);
+  font-size: var(--fonte-sm);
+}
+
+.pessoa-acoes {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--espaco-2);
+  margin-left: auto;
+  min-width: 0;
+  max-width: 100%;
+}
+.pessoa-acoes .confirmar { max-width: 100%; }
+
+/* ---------- estado vazio ---------- */
+/* Caixa tracejada em vez de uma frase solta em itálico: a área
+   reservada fica visível, então a tela não parece ter falhado em
+   carregar. (O itálico também caiu porque só o arquivo normal das
+   fontes está embarcado -- o navegador inclinaria as letras por conta,
+   e sai torto.) */
+.vazio {
+  margin: 0;
+  padding: var(--espaco-6) var(--espaco-4);
+  text-align: center;
+  color: var(--texto-fraco);
+  font-size: var(--fonte-sm);
+  border: 1px dashed var(--borda);
+  border-radius: var(--raio-md);
+}
+
+/* ---------- etiquetas de estado ---------- */
+.etiqueta {
+  display: inline-block;
+  margin-left: var(--espaco-1);
+  padding: 3px var(--espaco-2);
+  border-radius: var(--raio-sm);
+  font-family: var(--familia-titulo);
+  font-size: var(--fonte-xs);
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: .12em;
+  color: var(--alerta);
+  border: 1px solid var(--alerta);
+  background: rgba(255, 178, 36, .1);
+  vertical-align: middle;
+  white-space: nowrap;
+}
+.etiqueta.ok     { color: var(--ok); border-color: var(--ok); background: rgba(79, 180, 119, .1); }
+.etiqueta.neutra { color: var(--texto-fraco); border-color: var(--borda-forte); background: transparent; }
+
+/* ---------- avisos ---------- */
+/* As três variantes existem porque a mesma caixa verde estava escrita à
+   mão, em estilo embutido, em sete templates diferentes. */
+.aviso {
+  padding: var(--espaco-3) var(--espaco-4);
+  border-radius: var(--raio-md);
+  margin-bottom: var(--espaco-4);
+  font-size: var(--fonte-base);
+  background: rgba(242, 86, 75, .12);
+  border: 1px solid var(--erro);
+  color: #FFB9B3;
+}
+.aviso.ok      { background: rgba(79, 180, 119, .12); border-color: var(--ok);     color: #A7E0BF; }
+.aviso.atencao { background: rgba(255, 178, 36, .12); border-color: var(--alerta); color: #F6D394; }
+.aviso :last-child { margin-bottom: 0; }
+
+.dica { color: var(--texto-fraco); font-size: var(--fonte-sm); margin-top: var(--espaco-2); }
+
+
+/* ===================================================================
+   7. TELAS ESPECÍFICAS
+   =================================================================== */
+
+/* ---------- login ---------- */
+.tela-login {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  padding: var(--espaco-5);
+}
+.caixa-login { width: 100%; max-width: 380px; }
+
+.caixa-login .marca-login {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--espaco-3);
+  font-family: var(--familia-titulo);
+  font-size: var(--fonte-xl);
+  font-weight: 600;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  margin-bottom: var(--espaco-2);
+}
+.marca-login .simbolo { width: 54px; height: 54px; }
+
+.caixa-login .lema {
+  text-align: center;
+  color: var(--texto-fraco);
+  font-size: var(--fonte-sm);
+  margin: 0 0 var(--espaco-6);
+}
+
+/* A faixa de risco também na porta de entrada -- é a primeira tela que
+   qualquer pessoa vê do sistema. */
+.caixa-login .cartao {
+  position: relative;
+  overflow: hidden;
+  padding-top: calc(var(--espaco-5) + 6px);
+  box-shadow: var(--sombra-2);
+}
+.caixa-login .cartao::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 6px;
+  background-color: var(--superficie);
+  background-image: var(--risco);
+}
+
+.credenciais-demo {
+  margin-top: var(--espaco-4);
+  padding: var(--espaco-3);
+  text-align: center;
+  font-size: var(--fonte-sm);
+  color: var(--texto-fraco);
+  background: var(--superficie-2);
+  border-radius: var(--raio-sm);
+}
+.credenciais-demo strong { color: var(--texto); font-weight: 600; }
+
+/* ---------- código de inscrição ---------- */
+/* Mono com zero cortado e I com serifa: 0/O e 1/l/I não se confundem.
+   É escolha funcional -- o operador digita o que lê do celular do
+   participante, e um caractere errado para a fila. */
+.codigo {
+  font-family: var(--familia-mono);
+  letter-spacing: .18em;
+  font-weight: 700;
+}
+.codigo-grande {
+  font-family: var(--familia-mono);
+  font-size: var(--fonte-3xl);
+  font-weight: 700;
+  letter-spacing: .14em;
+  color: var(--destaque);
+  text-align: center;
+  padding: var(--espaco-5);
+  background: var(--superficie-2);
+  border: 1px dashed var(--destaque);
+  border-radius: var(--raio-md);
+  margin: var(--espaco-4) 0;
+  word-break: break-all;
+}
+
+/* ---------- painel de check-in ---------- */
+.entrada-codigo {
+  width: 100%;
+  font-size: var(--fonte-2xl);
+  text-align: center;
+  padding: var(--espaco-4);
+  letter-spacing: .3em;
+  text-transform: uppercase;
+  font-family: var(--familia-mono);
+  font-weight: 700;
+}
+
+/* A área de retorno tem altura mínima fixa para que o campo não suba e
+   desça a cada leitura -- com a fila andando, elemento que se mexe é
+   elemento que se erra. */
+.retorno {
+  display: flex;
+  align-items: center;
+  min-height: 116px;
+  margin-top: var(--espaco-4);
+}
+.retorno > * { width: 100%; }
+
+.retorno-vazio {
+  margin: 0;
+  padding: var(--espaco-6) var(--espaco-4);
+  text-align: center;
+  color: var(--texto-fraco);
+  font-size: var(--fonte-sm);
+  border: 1px dashed var(--borda);
+  border-radius: var(--raio-md);
+}
+
+/* Fundo tingido e borda inteira, não um filete de 6 px na lateral: de
+   relance, à noite, o que se lê primeiro é a área de cor. */
+.resultado {
+  display: flex;
+  gap: var(--espaco-4);
+  align-items: center;
+  border: 2px solid var(--borda);
+  border-radius: var(--raio-md);
+  padding: var(--espaco-4) var(--espaco-5);
+  background: var(--superficie-2);
+}
+.resultado .selo {
+  width: 40px; height: 40px; flex: none;
+  fill: none; stroke-width: 2;
+  stroke-linecap: round; stroke-linejoin: round;
+}
+.resultado .titulo {
+  font-family: var(--familia-titulo);
+  font-size: var(--fonte-base);
+  font-weight: 500;
+  letter-spacing: .16em;
+  text-transform: uppercase;
+}
+.resultado .nome-grande {
+  font-size: 1.5rem;
+  font-weight: 700;
+  letter-spacing: -.01em;
+  line-height: 1.2;
+  margin-top: 2px;
+}
+.resultado .detalhe { color: var(--texto-fraco); font-size: var(--fonte-sm); margin-top: 3px; }
+
+/* O lima aparece aqui e em nenhum outro lugar do sistema. */
+.resultado.ok { border-color: var(--liberado); background: rgba(201, 242, 63, .1); }
+.resultado.ok .titulo, .resultado.ok .selo { color: var(--liberado); stroke: var(--liberado); }
+
+.resultado.alerta { border-color: var(--alerta); background: rgba(255, 178, 36, .1); }
+.resultado.alerta .titulo, .resultado.alerta .selo { color: var(--alerta); stroke: var(--alerta); }
+
+.resultado.erro { border-color: var(--erro); background: rgba(242, 86, 75, .1); }
+.resultado.erro .titulo, .resultado.erro .selo { color: var(--erro); stroke: var(--erro); }
+
+/* Rodapé do cartão de portaria: a dica e o interruptor de som. */
+.rodape-portaria {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--espaco-3);
+  margin-top: var(--espaco-4);
+  padding-top: var(--espaco-3);
+  border-top: 1px solid var(--borda);
+}
+.rodape-portaria .dica { flex: 1 1 280px; margin-top: 0; }
+
+/* Precisa desfazer as regras globais de label e input, que valem para
+   campo de formulário e não para uma chave liga/desliga. */
+.interruptor {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--espaco-2);
+  margin: 0;
+  font-family: var(--familia-titulo);
+  font-size: var(--fonte-xs);
+  letter-spacing: var(--entreletra-placa);
+  text-transform: uppercase;
+  color: var(--texto-fraco);
+  cursor: pointer;
+  white-space: nowrap;
+}
+.interruptor input {
+  width: auto;
+  margin: 0;
+  accent-color: var(--destaque);
+  cursor: pointer;
 }
 
 /* ---------- ação principal e ações secundárias ---------- */
 /* O painel de portaria é a razão de o sistema existir no dia do evento.
-   Ele ocupa a linha inteira, tem alvo de toque generoso (o operador está em pé,
-   no escuro, às vezes de luva) e leva ícone junto do texto -- ícone sozinho
-   exigiria adivinhar, e adivinhar com a fila andando custa caro. */
+   Ele atravessa a largura inteira -- com o Oswald em caixa alta e
+   entreletra aberta, a barra longa vira quase uma placa de sinalização.
+   O alvo de toque é generoso (o operador está em pé, no escuro, às
+   vezes de luva) e leva ícone junto do texto: ícone sozinho exigiria
+   adivinhar, e adivinhar com a fila andando custa caro. */
 .acao-principal {
-  display: flex; align-items: center; justify-content: center; gap: 16px;
-  width: 100%; box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--espaco-4);
+  width: 100%;
   text-align: center;
-  margin: 4px 0 14px;
-  padding: 18px 22px;
-  background: var(--destaque); color: #1a1205;
-  border-radius: 14px; text-decoration: none;
-  box-shadow: 0 6px 18px rgba(240, 165, 0, .18);
-  transition: transform .12s, box-shadow .12s, background .12s;
+  margin: var(--espaco-1) 0 var(--espaco-3);
+  padding: var(--espaco-5);
+  background: var(--destaque);
+  color: var(--tinta);
+  border-radius: var(--raio-md);
+  text-decoration: none;
+  font-family: var(--familia-titulo);
+  font-weight: 600;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  transition: background var(--transicao), transform .12s;
 }
-.acao-principal:hover { background: var(--destaque-esc); box-shadow: 0 8px 22px rgba(240,165,0,.26); }
+.acao-principal:hover { background: var(--destaque-esc); color: var(--tinta); }
 .acao-principal:active { transform: translateY(1px); }
 .acao-principal:focus-visible { outline: 3px solid var(--texto); outline-offset: 3px; }
 
 .acao-principal svg {
-  width: 34px; height: 34px; flex: none;
-  fill: none; stroke: #1a1205; stroke-width: 1.7;
+  width: 30px; height: 30px; flex: none;
+  fill: none; stroke: var(--tinta); stroke-width: 2;
   stroke-linecap: round; stroke-linejoin: round;
 }
-.acao-principal strong { display: block; font-size: 1.12rem; line-height: 1.2; }
-.acao-principal small  { display: block; margin-top: 3px; font-size: .82rem; opacity: .72; }
+.acao-principal strong { display: block; font-size: 1.375rem; line-height: 1.15; font-weight: 600; }
+.acao-principal small  {
+  display: block;
+  margin-top: 4px;
+  font-family: var(--familia-interface);
+  font-size: var(--fonte-sm);
+  letter-spacing: 0;
+  text-transform: none;
+  opacity: .72;
+}
 
-/* As administrativas não competem com ela: sem preenchimento, texto menor. */
+/* As administrativas não competem com ela: sem preenchimento, texto
+   menor, sem caixa alta. */
 .acoes-secundarias {
-  display: flex; flex-wrap: wrap; gap: 10px; align-items: center;
-  margin-bottom: 20px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--espaco-2);
+  align-items: center;
+  margin-bottom: var(--espaco-5);
 }
 .acoes-secundarias form { margin: 0; }
 .acoes-secundarias a,
 .acoes-secundarias button {
   display: inline-block;
-  padding: 8px 16px; font-size: .86rem; font-weight: 500; font-family: inherit;
-  color: var(--texto-fraco); background: transparent;
-  border: 1px solid var(--borda); border-radius: 8px;
-  text-decoration: none; cursor: pointer;
+  padding: var(--espaco-2) var(--espaco-4);
+  font-family: var(--familia-interface);
+  font-size: var(--fonte-sm);
+  font-weight: 500;
+  letter-spacing: 0;
+  text-transform: none;
+  color: var(--texto-fraco);
+  background: transparent;
+  border: 1px solid var(--borda);
+  border-radius: var(--raio-md);
+  text-decoration: none;
+  cursor: pointer;
 }
 .acoes-secundarias a:hover,
-.acoes-secundarias button:hover { color: var(--texto); background: var(--superficie-2); }
+.acoes-secundarias button:hover {
+  color: var(--texto);
+  background: var(--superficie-2);
+  border-color: var(--borda-forte);
+}
 
-/* No celular -- que é onde a portaria acontece -- o alvo cresce ainda mais. */
+/* ---------- confirmação de ação destrutiva ---------- */
+/* Usa <details> em vez de confirm() do navegador: a janela nativa não
+   combina com o tema, não é estilizável e some do fluxo da página. Aqui
+   a pergunta aparece onde a ação foi pedida, e diz exatamente o que vai
+   acontecer. */
+.confirmar { display: inline-block; }
+
+.confirmar > summary {
+  display: inline-block;
+  list-style: none;
+  cursor: pointer;
+  padding: var(--espaco-1) var(--espaco-3);
+  font-size: var(--fonte-sm);
+  color: var(--texto-fraco);
+  background: transparent;
+  border: 1px solid var(--borda);
+  border-radius: var(--raio-md);
+  transition: color var(--transicao), border-color var(--transicao);
+}
+.confirmar > summary::-webkit-details-marker { display: none; }
+.confirmar > summary:hover { color: var(--erro); border-color: var(--erro); }
+.confirmar[open] > summary { color: var(--erro); border-color: var(--erro); }
+
+/* A caixa abre DENTRO do fluxo, empurrando o conteúdo para baixo. Como
+   popover absoluto ela escapava do cartão quando a tabela era curta, e
+   ficava pairando sobre o nada -- o que parece defeito, não intenção.
+
+   A largura é um teto, não uma medida fixa: dentro de uma linha
+   estreita ela encolhe junto em vez de atravessar a borda do cartão.
+   Foi o que acontecia enquanto a equipe era uma tabela -- a célula
+   tinha a largura da coluna, e a caixa de 280 px saía por fora dela. */
+.confirmar-caixa {
+  width: 320px;
+  max-width: 100%;
+  margin: var(--espaco-2) 0 2px;
+  padding: var(--espaco-3) var(--espaco-4);
+  text-align: left;
+  background: var(--superficie-2);
+  border: 1px solid var(--erro);
+  border-radius: var(--raio-md);
+  box-shadow: var(--sombra-2);
+}
+.confirmar-caixa p { margin: 0 0 var(--espaco-3); font-size: var(--fonte-sm); line-height: 1.45; }
+.confirmar-acoes { display: flex; gap: var(--espaco-2); }
+.confirmar-acoes button { padding: var(--espaco-2) var(--espaco-3); font-size: var(--fonte-sm); }
+
+button.perigo {
+  color: #fff;
+  background: var(--erro);
+  border: 1px solid var(--erro);
+}
+button.perigo:hover { filter: brightness(1.12); color: #fff; background: var(--erro); }
+
+
+/* ===================================================================
+   8. UTILITÁRIOS
+   -------------------------------------------------------------------
+   Lista curta e fechada, só para os ajustes que antes estavam escritos
+   como atributo style= dentro dos templates. O estilo embutido no HTML
+   é o pior lugar possível para uma decisão visual: não aparece nesta
+   folha, não pode ser reaproveitado e precisa ser corrigido arquivo por
+   arquivo quando o tema muda. Esta seção existe para que não haja mais
+   nenhum style= no projeto.
+   =================================================================== */
+
+/* Linha de apoio -- e-mail sob o nome, local sob o evento. Sem display
+   declarado: fica em linha quando acompanha um texto e vira bloco onde
+   a própria regra do componente pede (ver .pessoa-dados .apoio). */
+.apoio {
+  color: var(--texto-fraco);
+  font-size: var(--fonte-sm);
+}
+.centro            { text-align: center; }
+.sem-margem        { margin: 0; }
+.sem-margem-topo   { margin-top: 0; }
+.sem-margem-baixo  { margin-bottom: 0; }
+.sub.compacta      { margin-bottom: var(--espaco-4); }
+.botao-largo       { width: 100%; }
+.botao-mini        { padding: var(--espaco-1) var(--espaco-3); font-size: var(--fonte-sm); }
+.forma-inline      { display: inline; margin: 0; }
+.celula-acoes      { text-align: right; white-space: nowrap; }
+
+
+/* ===================================================================
+   9. RESPONSIVO E PREFERÊNCIAS DO SISTEMA
+   =================================================================== */
+
+/* A portaria acontece no celular: os alvos crescem em vez de encolher. */
 @media (max-width: 620px) {
-  .acao-principal { padding: 22px; gap: 14px; }
-  .acao-principal strong { font-size: 1.2rem; }
+  .container,
+  .container-estreito { padding: var(--espaco-4) var(--espaco-4) var(--espaco-7); }
+
+  h1 { font-size: 1.625rem; margin-top: var(--espaco-5); }
+
+  .cartao { padding: var(--espaco-4); }
+
+  .acao-principal { padding: var(--espaco-5) var(--espaco-4); gap: var(--espaco-3); }
+  .acao-principal strong { font-size: 1.25rem; }
+
   .acoes-secundarias a,
-  .acoes-secundarias button { flex: 1 1 auto; text-align: center; padding: 12px 16px; }
+  .acoes-secundarias button { flex: 1 1 auto; text-align: center; padding: var(--espaco-3) var(--espaco-4); }
+
+  .entrada-codigo { font-size: 1.75rem; letter-spacing: .22em; }
+  .codigo-grande { font-size: 2rem; padding: var(--espaco-4); }
+
+  .indicador { padding: var(--espaco-5) var(--espaco-3) var(--espaco-3); }
+  .indicador .valor { font-size: 1.75rem; }
+
+  .resultado { padding: var(--espaco-4); gap: var(--espaco-3); }
+  .resultado .nome-grande { font-size: 1.25rem; }
+
+  th, td { padding: var(--espaco-2) var(--espaco-1); }
+}
+
+/* Abaixo disto a barra superior não cabe em uma linha: a navegação
+   passa para a linha de baixo em vez de espremer os três itens. */
+@media (max-width: 560px) {
+  .topo { flex-wrap: wrap; gap: var(--espaco-2); padding: calc(var(--espaco-3) + 6px) var(--espaco-4) var(--espaco-3); }
+  .topo nav { width: 100%; justify-content: flex-start; }
+  .item-barra { height: 36px; }
+  .item-barra span { max-width: 12ch; }
+}
+
+/* Quem pede menos movimento no sistema operacional recebe menos
+   movimento aqui. */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: .01ms !important;
+    transition-duration: .01ms !important;
+  }
+  .acao-principal:active { transform: none; }
 }

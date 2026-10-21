@@ -11,6 +11,7 @@ import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
@@ -27,12 +28,15 @@ public class ControladorDeEventos {
     private final ServicoDeEventos eventos;
     private final ServicoDeInscricoes inscricoes;
     private final RepositorioDeCheckIns checkIns;
+    private final EventosDoColaborador eventosDoColaborador;
 
     public ControladorDeEventos(ServicoDeEventos eventos, ServicoDeInscricoes inscricoes,
-                                RepositorioDeCheckIns checkIns) {
+                                RepositorioDeCheckIns checkIns,
+                                EventosDoColaborador eventosDoColaborador) {
         this.eventos = eventos;
         this.inscricoes = inscricoes;
         this.checkIns = checkIns;
+        this.eventosDoColaborador = eventosDoColaborador;
     }
 
     /** Dados do formulário de evento -- serve tanto para criar quanto para editar. */
@@ -74,9 +78,21 @@ public class ControladorDeEventos {
         public void setCapacidade(Integer capacidade) { this.capacidade = capacidade; }
     }
 
+    /**
+     * A mesma rota serve os dois papéis, com conteúdos diferentes: o organizador
+     * vê todos os eventos e o formulário de cadastro; o colaborador vê apenas
+     * aqueles em que trabalha, e nada mais.
+     */
     @GetMapping
-    public String listar(Model modelo) {
-        modelo.addAttribute("eventos", eventos.listar());
+    public String listar(Authentication autenticado, Model modelo) {
+        boolean organizador = autenticado.getAuthorities().stream()
+                .anyMatch(papel -> "ROLE_ORGANIZADOR".equals(papel.getAuthority()));
+
+        modelo.addAttribute("organizador", organizador);
+        modelo.addAttribute("eventos", organizador
+                ? eventos.listar()
+                : eventosDoColaborador.listarPara(autenticado.getName()));
+
         if (!modelo.containsAttribute("formulario")) {
             modelo.addAttribute("formulario", new FormularioDeEvento());
         }
@@ -87,6 +103,8 @@ public class ControladorDeEventos {
     public String criar(@ModelAttribute("formulario") @Valid FormularioDeEvento formulario,
                         BindingResult erros, Model modelo) {
         if (erros.hasErrors()) {
+            // Só organizador chega a este POST; a rota garante isso.
+            modelo.addAttribute("organizador", true);
             modelo.addAttribute("eventos", eventos.listar());
             return "eventos/lista";
         }

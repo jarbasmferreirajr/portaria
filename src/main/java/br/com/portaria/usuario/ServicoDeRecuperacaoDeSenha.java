@@ -37,6 +37,13 @@ public class ServicoDeRecuperacaoDeSenha {
 
     private static final ZoneId FUSO = ZoneId.of("America/Sao_Paulo");
     private static final Duration VALIDADE = Duration.ofMinutes(30);
+
+    /**
+     * O convite de colaborador vale mais tempo que a recuperação de senha.
+     * Quem pede recuperação está na frente do computador agora; quem é
+     * convidado pode só abrir o e-mail no fim de semana.
+     */
+    private static final Duration VALIDADE_DO_CONVITE = Duration.ofDays(7);
     private static final int BYTES_DO_TOKEN = 32;
 
     private final RepositorioDeUsuarios usuarios;
@@ -85,12 +92,34 @@ public class ServicoDeRecuperacaoDeSenha {
         tokens.findByUsuarioIdAndUsadoEmIsNull(usuario.getId())
                 .forEach(TokenDeRecuperacao::invalidar);
 
-        String token = sortearToken();
-        LocalDateTime expiraEm = LocalDateTime.now(FUSO).plus(VALIDADE);
-        tokens.save(new TokenDeRecuperacao(usuario, hashDe(token), expiraEm));
+        String link = urlBase + "/redefinir-senha?token=" + gerarToken(usuario, VALIDADE);
+        enviador.enviar(usuario.getEmail(), "Portaria - redefinicao de senha",
+                corpoDaRecuperacao(usuario, link));
+    }
 
-        String link = urlBase + "/redefinir-senha?token=" + token;
-        enviador.enviar(usuario.getEmail(), "Portaria - redefinicao de senha", corpoDoEmail(usuario, link));
+    /**
+     * Convida alguém a assumir a própria conta, definindo a senha.
+     *
+     * Reaproveita inteiramente o mecanismo da recuperação: mesmo sorteio, mesmo
+     * hash, mesma tela de definir senha, mesmo uso único. Muda a validade e o
+     * texto. Inventar um segundo mecanismo de token para convite seria duplicar
+     * as mesmas quatro decisões de segurança e manter as duas em sincronia.
+     */
+    @Transactional
+    public void convidar(Usuario usuario, String nomeDoEvento, String urlBase) {
+        tokens.findByUsuarioIdAndUsadoEmIsNull(usuario.getId())
+                .forEach(TokenDeRecuperacao::invalidar);
+
+        String link = urlBase + "/redefinir-senha?token=" + gerarToken(usuario, VALIDADE_DO_CONVITE);
+        enviador.enviar(usuario.getEmail(), "Portaria - convite para colaborar",
+                corpoDoConvite(usuario, nomeDoEvento, link));
+    }
+
+    private String gerarToken(Usuario usuario, Duration validade) {
+        String token = sortearToken();
+        tokens.save(new TokenDeRecuperacao(usuario, hashDe(token),
+                LocalDateTime.now(FUSO).plus(validade)));
+        return token;
     }
 
     @Transactional(readOnly = true)
@@ -131,7 +160,7 @@ public class ServicoDeRecuperacaoDeSenha {
         }
     }
 
-    private String corpoDoEmail(Usuario usuario, String link) {
+    private String corpoDaRecuperacao(Usuario usuario, String link) {
         return """
                Olá, %s.
 
@@ -145,5 +174,23 @@ public class ServicoDeRecuperacaoDeSenha {
                Se não foi você quem pediu, ignore esta mensagem: nada muda na
                sua conta enquanto o link não for aberto.
                """.formatted(usuario.getNome(), link, VALIDADE.toMinutes());
+    }
+
+    private String corpoDoConvite(Usuario usuario, String nomeDoEvento, String link) {
+        return """
+               Olá, %s.
+
+               Você foi incluído como colaborador do evento "%s" no Portaria,
+               o sistema que controla a entrada dos participantes.
+
+               Para criar sua senha e acessar o painel de portaria, abra:
+
+               %s
+
+               O link vale por %d dias e só pode ser usado uma vez.
+
+               Cada colaborador tem a própria conta: é assim que o sistema
+               registra quem liberou a entrada de cada participante.
+               """.formatted(usuario.getNome(), nomeDoEvento, link, VALIDADE_DO_CONVITE.toDays());
     }
 }

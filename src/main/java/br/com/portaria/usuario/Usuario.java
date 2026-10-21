@@ -24,6 +24,8 @@ public class Usuario {
     private static final ZoneId FUSO = ZoneId.of("America/Sao_Paulo");
 
     public static final String PAPEL_ORGANIZADOR = "ORGANIZADOR";
+    /** Trabalha no dia do evento: portaria, entrega de kit, apoio. */
+    public static final String PAPEL_COLABORADOR = "COLABORADOR";
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -53,6 +55,16 @@ public class Usuario {
 
     @Column(nullable = false)
     private boolean ativo = true;
+
+    /**
+     * Falso enquanto a pessoa não escolheu a própria senha.
+     *
+     * Contas criadas por convite nascem com uma senha aleatória que ninguém
+     * conhece -- elas existem, mas não dão acesso a nada. Esta coluna é o que
+     * permite distinguir "tem cadastro" de "consegue entrar".
+     */
+    @Column(name = "acesso_definido", nullable = false)
+    private boolean acessoDefinido = true;
 
     @Column(name = "criado_em", nullable = false)
     private LocalDateTime criadoEm = LocalDateTime.now(FUSO);
@@ -98,6 +110,12 @@ public class Usuario {
 
     public void trocarSenha(String novoHash) {
         this.senhaHash = novoHash;
+        this.acessoDefinido = true;
+    }
+
+    /** Conta criada por convite: existe, mas ainda não dá acesso. */
+    public void aguardarDefinicaoDeAcesso() {
+        this.acessoDefinido = false;
     }
 
     public void desativar() {
@@ -113,5 +131,6 @@ public class Usuario {
     public String getSite() { return site; }
     public String getPapel() { return papel; }
     public boolean isAtivo() { return ativo; }
+    public boolean isAcessoDefinido() { return acessoDefinido; }
     public LocalDateTime getCriadoEm() { return criadoEm; }
 }

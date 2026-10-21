@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="pt-BR">
+<head th:replace="~{layout :: cabecalho('Colaboradores')}"></head>
+<body>
+
+<header th:replace="~{layout :: topo}"></header>
+
+<div class="container" id="conteudo">
+    <h1>Colaboradores</h1>
+    <p class="sub" th:text="${evento.nome}">Evento</p>
+
+    <div th:if="${erroFlash}" class="aviso" th:text="${erroFlash}"></div>
+    <div th:if="${sucesso}" class="aviso ok" th:text="${sucesso}"></div>
+
+    <div class="grade grade-2">
+
+        <div class="cartao">
+            <h2>Equipe do evento</h2>
+
+            <!-- Lista, não tabela. A equipe não é dado que se compare coluna a
+                 coluna: é uma pessoa por linha com uma ação ao lado. Como
+                 tabela, a largura da célula espremia nome e função em duas e
+                 três linhas no celular, e a caixa de confirmação não cabia
+                 dentro da coluna -- saía por cima do cartão vizinho. -->
+            <ul class="lista-pessoas" th:if="${!#lists.isEmpty(colaboradores)}">
+                <li class="pessoa" th:each="c : ${colaboradores}">
+
+                    <div class="pessoa-dados">
+                        <span class="pessoa-nome" th:text="${c.usuario.nome}">Nome</span>
+                        <span class="etiqueta" th:unless="${c.usuario.acessoDefinido}">convite pendente</span>
+                        <span class="apoio" th:text="${c.usuario.email}">email</span>
+                    </div>
+
+                    <div class="pessoa-funcao" th:text="${c.funcao} ?: 'Sem função definida'">Função</div>
+
+                    <div class="pessoa-acoes">
+
+                        <form th:unless="${c.usuario.acessoDefinido}"
+                              th:action="@{/eventos/{e}/colaboradores/{c}/reenviar-convite(e=${evento.id},c=${c.id})}"
+                              method="post" class="forma-inline">
+                            <button type="submit" class="botao-secundario botao-mini">Reenviar convite</button>
+                        </form>
+
+                        <!-- Confirmação sem janela do navegador: o próprio <details>
+                             guarda o estado, e a pergunta aparece dentro da página,
+                             dizendo o que acontece com a conta e com os check-ins. -->
+                        <details class="confirmar">
+                            <summary>Remover</summary>
+                            <div class="confirmar-caixa">
+                                <p>
+                                    Remover <strong th:text="${c.usuario.nome}">Nome</strong> deste evento?
+                                    A conta e os check-ins registrados por ela permanecem.
+                                </p>
+                                <div class="confirmar-acoes">
+                                    <form th:action="@{/eventos/{e}/colaboradores/{c}/remover(e=${evento.id},c=${c.id})}"
+                                          method="post" class="forma-inline">
+                                        <button type="submit" class="perigo">Sim, remover</button>
+                                    </form>
+                                    <button type="button" class="botao-secundario"
+                                            onclick="this.closest('details').open = false">Não</button>
+                                </div>
+                            </div>
+                        </details>
+                    </div>
+                </li>
+            </ul>
+
+            <p class="vazio" th:if="${#lists.isEmpty(colaboradores)}">
+                Ninguém na equipe ainda. Inclua quem vai trabalhar na portaria.
+            </p>
+        </div>
+
+        <div class="cartao">
+            <h2>Incluir colaborador</h2>
+
+            <div class="aviso" th:if="${erroInclusao}" th:text="${erroInclusao}"></div>
+
+            <form th:action="@{/eventos/{id}/colaboradores(id=${evento.id})}"
+                  th:object="${formulario}" method="post">
+                <div class="campo">
+                    <label for="nome">Nome</label>
+                    <input type="text" id="nome" th:field="*{nome}">
+                    <div class="erro-campo" th:if="${#fields.hasErrors('nome')}" th:errors="*{nome}"></div>
+                </div>
+                <div class="campo">
+                    <label for="email">E-mail</label>
+                    <input type="email" id="email" th:field="*{email}"
+                           placeholder="colaborador@exemplo.com">
+                    <div class="erro-campo" th:if="${#fields.hasErrors('email')}" th:errors="*{email}"></div>
+                </div>
+                <div class="campo">
+                    <label for="funcao">Função (opcional)</label>
+                    <input type="text" id="funcao" th:field="*{funcao}"
+                           placeholder="Portaria, entrega de kit, apoio">
+                </div>
+                <button type="submit">Enviar convite</button>
+                <p class="dica">
+                    A pessoa recebe um link para definir a própria senha. Cada colaborador
+                    tem conta própria — é assim que o sistema registra quem liberou a
+                    entrada de cada participante.
+                </p>
+            </form>
+        </div>
+    </div>
+</div>
+
+</body>
+</html>

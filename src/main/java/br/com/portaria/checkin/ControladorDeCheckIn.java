@@ -7,7 +7,9 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
-import java.security.Principal;
+import br.com.portaria.usuario.ServicoDeColaboradores;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.core.Authentication;
 
 /**
  * Painel de portaria: a tela que o operador usa com a fila andando.
@@ -20,17 +22,39 @@ public class ControladorDeCheckIn {
     private final ServicoDeInscricoes inscricoes;
     private final ServicoDeCheckIn servicoDeCheckIn;
     private final RepositorioDeCheckIns checkIns;
+    private final ServicoDeColaboradores colaboradores;
 
     public ControladorDeCheckIn(ServicoDeEventos eventos, ServicoDeInscricoes inscricoes,
-                                ServicoDeCheckIn servicoDeCheckIn, RepositorioDeCheckIns checkIns) {
+                                ServicoDeCheckIn servicoDeCheckIn, RepositorioDeCheckIns checkIns,
+                                ServicoDeColaboradores colaboradores) {
         this.eventos = eventos;
         this.inscricoes = inscricoes;
         this.servicoDeCheckIn = servicoDeCheckIn;
         this.checkIns = checkIns;
+        this.colaboradores = colaboradores;
+    }
+
+    /**
+     * A regra de rota já garantiu o papel; aqui se verifica o VÍNCULO.
+     *
+     * Sem isto, qualquer colaborador de qualquer evento poderia abrir o painel
+     * de outro evento trocando o número na URL -- a falha mais comum em sistemas
+     * com controle de acesso só por papel.
+     */
+    private void exigirAcessoAoEvento(Long eventoId, Authentication autenticado) {
+        boolean organizador = autenticado.getAuthorities().stream()
+                .anyMatch(papel -> "ROLE_ORGANIZADOR".equals(papel.getAuthority()));
+        if (organizador) {
+            return;
+        }
+        if (!colaboradores.podeOperar(eventoId, autenticado.getName())) {
+            throw new AccessDeniedException("Você não trabalha neste evento.");
+        }
     }
 
     @GetMapping
-    public String painel(@PathVariable Long id, Model modelo) {
+    public String painel(@PathVariable Long id, Authentication autenticado, Model modelo) {
+        exigirAcessoAoEvento(id, autenticado);
         preencherPainel(id, modelo);
         return "checkin/painel";
     }
@@ -47,9 +71,10 @@ public class ControladorDeCheckIn {
     @PostMapping
     public String registrar(@PathVariable Long id,
                             @RequestParam("codigo") String codigo,
-                            Principal operadorAutenticado,
+                            Authentication autenticado,
                             Model modelo) {
-        String operador = operadorAutenticado != null ? operadorAutenticado.getName() : "desconhecido";
+        exigirAcessoAoEvento(id, autenticado);
+        String operador = autenticado != null ? autenticado.getName() : "desconhecido";
         ResultadoCheckIn resultado = servicoDeCheckIn.registrarPorCodigo(codigo, id, operador);
 
         modelo.addAttribute("resultado", resultado);

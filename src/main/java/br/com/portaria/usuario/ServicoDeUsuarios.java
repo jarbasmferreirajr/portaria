@@ -37,6 +37,24 @@ public class ServicoDeUsuarios {
         return usuarios.save(new Usuario(nome, normalizado, codificador.encode(senha), papel));
     }
 
+    /**
+     * Cria a conta de quem foi convidado: ela existe, mas só passa a dar acesso
+     * quando a própria pessoa definir a senha pelo link do convite.
+     */
+    @Transactional
+    public Usuario criarAguardandoConvite(String nome, String email, String papel) {
+        Usuario criado = criar(nome, email, senhaProvisoria(), papel);
+        criado.aguardarDefinicaoDeAcesso();
+        return usuarios.save(criado);
+    }
+
+    /** Valor aleatório, nunca revelado: o acesso vem do convite, não daqui. */
+    private String senhaProvisoria() {
+        byte[] bytes = new byte[32];
+        new java.security.SecureRandom().nextBytes(bytes);
+        return java.util.Base64.getUrlEncoder().withoutPadding().encodeToString(bytes);
+    }
+
     @Transactional(readOnly = true)
     public Usuario porEmail(String email) {
         return usuarios.findByEmail(Usuario.normalizarEmail(email))

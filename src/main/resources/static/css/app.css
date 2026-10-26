@@ -324,6 +324,27 @@ h2 {
 }
 .pular-para-conteudo:focus { left: var(--espaco-4); color: var(--tinta); }
 
+/* ---------- voltar ---------- */
+/* Caminho de volta explícito. Sem ele a única saída de Colaboradores era o
+   botão do navegador -- que existe, mas obriga a pessoa a lembrar de onde
+   veio em vez de a tela dizer. */
+.voltar {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--espaco-2);
+  margin-top: var(--espaco-5);
+  font-family: var(--familia-titulo);
+  font-size: var(--fonte-xs);
+  font-weight: 500;
+  letter-spacing: var(--entreletra-placa);
+  text-transform: uppercase;
+  color: var(--texto-fraco);
+  text-decoration: none;
+}
+.voltar::before { content: "\2190"; font-size: 1rem; line-height: 1; }
+.voltar:hover { color: var(--texto); }
+.voltar + h1 { margin-top: var(--espaco-3); }
+
 /* ---------- itens da barra superior ---------- */
 /* Os três itens (Eventos, conta, Sair) compartilham a MESMA geometria.
    Antes eram um link puro, uma cápsula e um retângulo -- três formas
@@ -376,6 +397,30 @@ h2 {
 .cartao h2 { margin-top: 0; }
 .cartao > :last-child { margin-bottom: 0; }
 
+/* Cabeçalho de cartão com ferramentas à direita (título + busca + exportar). */
+.barra-cartao {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--espaco-3);
+  margin-bottom: var(--espaco-4);
+}
+.barra-cartao h2 { margin: 0; }
+
+.ferramentas {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--espaco-2);
+}
+.ferramentas input {
+  width: auto;
+  min-width: 240px;
+  padding: var(--espaco-2) var(--espaco-3);
+  font-size: var(--fonte-sm);
+}
+
 .grade { display: grid; gap: var(--espaco-4); }
 @media (min-width: 760px) { .grade-2 { grid-template-columns: 1fr 1fr; align-items: start; } }
 
@@ -419,6 +464,11 @@ textarea { resize: vertical; }
 /* O ícone do calendário nasce preto sobre fundo escuro em alguns
    navegadores; invertê-lo é mais simples e previsível que substituí-lo. */
 ::-webkit-calendar-picker-indicator { filter: invert(.85); cursor: pointer; }
+
+/* Campo acompanhado de um botão na mesma linha (endereço público + copiar). */
+.linha-com-acao { display: flex; align-items: stretch; gap: var(--espaco-2); }
+.linha-com-acao input { flex: 1 1 auto; min-width: 0; }
+.linha-com-acao button { flex: none; white-space: nowrap; }
 
 .campo { margin-bottom: var(--espaco-4); }
 .linha { display: grid; gap: var(--espaco-3); }
@@ -580,6 +630,24 @@ tbody tr:hover { background: var(--superficie-2); }
 /* No celular a tabela de inscritos não cabe na largura da tela. Em vez
    de encolher a fonte até o ilegível, o invólucro rola na horizontal. */
 .tabela-rolavel { overflow-x: auto; }
+
+/* ---------- situação do inscrito ---------- */
+/* A lista mostrava nome, motoclube, cidade e código -- e não dizia quem já
+   tinha chegado. O verde discreto, e não o lima, é proposital: o lima marca a
+   liberação acontecendo agora no portão; aqui é o registro dela, já assentado. */
+.situacao {
+  display: inline-block;
+  padding: 3px var(--espaco-2);
+  border-radius: var(--raio-sm);
+  font-family: var(--familia-titulo);
+  font-size: var(--fonte-xs);
+  font-weight: 500;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+.situacao.presente   { color: var(--ok); background: rgba(79, 180, 119, .14); }
+.situacao.aguardando { color: var(--texto-fraco); background: var(--superficie-2); }
 
 /* ---------- lista de pessoas ---------- */
 /* A equipe do evento era uma <table>, e não devia ser: tabela serve a
@@ -1035,6 +1103,10 @@ button.perigo:hover { filter: brightness(1.12); color: #fff; background: var(--e
 .forma-inline      { display: inline; margin: 0; }
 .celula-acoes      { text-align: right; white-space: nowrap; }
 
+/* O navegador já esconde [hidden], mas uma regra de display em cima do
+   elemento venceria. A busca de inscritos depende disto para esconder linha. */
+[hidden] { display: none !important; }
+
 
 /* ===================================================================
    9. RESPONSIVO E PREFERÊNCIAS DO SISTEMA
@@ -1057,6 +1129,9 @@ button.perigo:hover { filter: brightness(1.12); color: #fff; background: var(--e
 
   .entrada-codigo { font-size: 1.75rem; letter-spacing: .22em; }
   .codigo-grande { font-size: 2rem; padding: var(--espaco-4); }
+
+  .ferramentas { width: 100%; }
+  .ferramentas input { flex: 1 1 100%; min-width: 0; }
 
   .indicador { padding: var(--espaco-5) var(--espaco-3) var(--espaco-3); }
   .indicador .valor { font-size: 1.75rem; }

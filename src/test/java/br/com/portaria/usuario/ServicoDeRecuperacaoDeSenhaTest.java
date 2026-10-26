@@ -1,5 +1,7 @@
 package br.com.portaria.usuario;
 
+import br.com.portaria.email.EnviadorDeEmail;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;

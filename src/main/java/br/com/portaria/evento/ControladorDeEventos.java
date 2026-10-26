@@ -1,6 +1,8 @@
 package br.com.portaria.evento;
 
+import br.com.portaria.checkin.CheckIn;
 import br.com.portaria.checkin.RepositorioDeCheckIns;
+import br.com.portaria.inscricao.Inscricao;
 import br.com.portaria.inscricao.ServicoDeInscricoes;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Min;
@@ -8,6 +10,9 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
@@ -16,7 +21,14 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
+import java.nio.charset.StandardCharsets;
+import java.text.Normalizer;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * Área do organizador: listar, criar e acompanhar eventos.
@@ -121,6 +133,9 @@ public class ControladorDeEventos {
         modelo.addAttribute("inscricoes", inscricoes.listarDoEvento(id));
         modelo.addAttribute("totalInscritos", inscricoes.contarDoEvento(id));
         modelo.addAttribute("totalPresentes", checkIns.contarPorEvento(id));
+        // Quem já passou pela portaria, por inscrição. Sem isto o organizador
+        // olha a lista e não sabe quem está dentro do evento.
+        modelo.addAttribute("entradas", entradasDoEvento(id));
         // O Thymeleaf 3.1 removeu o acesso à requisição dentro do template,
         // então a URL pública absoluta é montada aqui.
         modelo.addAttribute("linkPublico", ServletUriComponentsBuilder.fromCurrentContextPath()
@@ -182,6 +197,83 @@ public class ControladorDeEventos {
         eventos.reabrir(id);
         atributos.addFlashAttribute("sucesso", "Inscrições reabertas.");
         return "redirect:/eventos/" + id;
+    }
+
+    // ---------- exportação ----------
+
+    /**
+     * Lista de inscritos em CSV, para o organizador levar o dado para fora do
+     * sistema -- planilha, lista de conferência impressa, prestação de contas.
+     *
+     * Três detalhes que não são capricho:
+     *  - BOM de UTF-8 no início, senão o Excel em português abre "João" como
+     *    "JoÃ£o";
+     *  - ponto e vírgula como separador, que é o que o Excel configurado em
+     *    pt-BR espera;
+     *  - campo iniciado por =, +, - ou @ recebe um apóstrofo na frente. Sem
+     *    isso, um nome como "=cmd" vira fórmula ao abrir a planilha, o que é
+     *    um vetor de ataque conhecido (CSV injection).
+     */
+    @GetMapping("/{id}/inscritos.csv")
+    public ResponseEntity<byte[]> exportarInscritos(@PathVariable Long id) {
+        Evento evento = eventos.porId(id);
+        Map<Long, LocalDateTime> entradas = entradasDoEvento(id);
+        List<Inscricao> lista = inscricoes.listarDoEvento(id);
+
+        DateTimeFormatter formato = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
+        StringBuilder csv = new StringBuilder();
+        csv.append("Nome;E-mail;Telefone;Cidade;Motoclube;Codigo;Situacao;Entrada em\r\n");
+        for (Inscricao inscricao : lista) {
+            LocalDateTime entrada = entradas.get(inscricao.getId());
+            csv.append(campo(inscricao.getNome())).append(';')
+               .append(campo(inscricao.getEmail())).append(';')
+               .append(campo(inscricao.getTelefone())).append(';')
+               .append(campo(inscricao.getCidade())).append(';')
+               .append(campo(inscricao.getMotoclube())).append(';')
+               .append(campo(inscricao.getCodigo())).append(';')
+               .append(campo(entrada == null ? "Aguardando" : "Presente")).append(';')
+               .append(campo(entrada == null ? "" : formato.format(entrada)))
+               .append("\r\n");
+        }
+
+        byte[] corpo = ('\uFEFF' + csv.toString()).getBytes(StandardCharsets.UTF_8);
+        String arquivo = "inscritos-" + apelido(evento.getNome()) + ".csv";
+
+        return ResponseEntity.ok()
+                .contentType(new MediaType("text", "csv", StandardCharsets.UTF_8))
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + arquivo + "\"")
+                .body(corpo);
+    }
+
+    /**
+     * Momento de entrada por inscrição.
+     *
+     * O toMap estrito é intencional: a tabela check_in tem UNIQUE (inscricao_id),
+     * então chave repetida aqui significaria que a restrição foi perdida. Falhar
+     * alto nesse caso é melhor que escolher silenciosamente uma das entradas.
+     */
+    private Map<Long, LocalDateTime> entradasDoEvento(Long eventoId) {
+        return checkIns.listarPorEvento(eventoId).stream()
+                .collect(Collectors.toMap(c -> c.getInscricao().getId(), CheckIn::getRegistradoEm));
+    }
+
+    /** Escapa um valor para CSV e neutraliza o que a planilha leria como fórmula. */
+    private static String campo(String valor) {
+        String texto = valor == null ? "" : valor;
+        if (!texto.isEmpty() && "=+-@".indexOf(texto.charAt(0)) >= 0) {
+            texto = "'" + texto;
+        }
+        return '"' + texto.replace("\"", "\"\"") + '"';
+    }
+
+    /** Nome do evento reduzido ao que é seguro em nome de arquivo. */
+    private static String apelido(String texto) {
+        String semAcento = Normalizer.normalize(texto, Normalizer.Form.NFD)
+                .replaceAll("\\p{M}", "");
+        String limpo = semAcento.toLowerCase(Locale.ROOT)
+                .replaceAll("[^a-z0-9]+", "-")
+                .replaceAll("(^-|-$)", "");
+        return limpo.isEmpty() ? "evento" : limpo;
     }
 
     private FormularioDeEvento formularioDe(Evento evento) {

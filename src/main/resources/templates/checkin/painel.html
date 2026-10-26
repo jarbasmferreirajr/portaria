@@ -119,6 +119,10 @@
                                 Não corresponde a nenhuma inscrição deste evento.
                                 Confirme o código ou faça a inscrição na hora.
                             </div>
+                            <!-- Quando o sistema consegue apontar o erro provável,
+                                 aponta. Ver ServicoDeCheckIn.dicaDeLeitura. -->
+                            <div class="detalhe" th:if="${resultado.dica != null}"
+                                 th:text="${resultado.dica}"></div>
                         </div>
                     </div>
                 </div>

@@ -14,6 +14,14 @@ import java.util.Optional;
 @Service
 public class ServicoDeCheckIn {
 
+    /**
+     * Caracteres que o gerador de códigos nunca produz (ver GeradorDeCodigo, que
+     * exclui 0/O e 1/I/L de propósito). Se um deles aparece no que foi digitado,
+     * é leitura errada com certeza -- e dizer isso é mais útil ao operador que
+     * um "código não encontrado" genérico, porque aponta onde procurar o erro.
+     */
+    private static final String IMPOSSIVEIS = "01OIL";
+
     private final RepositorioDeInscricoes inscricoes;
     private final RepositorioDeCheckIns checkIns;
     private final RegistroDePresenca registro;
@@ -42,7 +50,7 @@ public class ServicoDeCheckIn {
         Optional<Inscricao> encontrada = inscricoes.buscarPorCodigoComEvento(normalizado);
 
         if (encontrada.isEmpty() || !encontrada.get().getEvento().getId().equals(eventoId)) {
-            return ResultadoCheckIn.naoEncontrado();
+            return ResultadoCheckIn.naoEncontrado(dicaDeLeitura(normalizado));
         }
 
         Inscricao inscricao = encontrada.get();
@@ -70,5 +78,27 @@ public class ServicoDeCheckIn {
             return "";
         }
         return codigo.trim().toUpperCase().replaceAll("[^A-Z0-9]", "");
+    }
+
+    /**
+     * Explica o provável erro de leitura, quando dá para saber qual é.
+     * Devolve null quando não há nada de útil a dizer -- e aí a tela mostra
+     * apenas que o código não foi encontrado.
+     */
+    private String dicaDeLeitura(String codigo) {
+        StringBuilder achados = new StringBuilder();
+        for (char caractere : IMPOSSIVEIS.toCharArray()) {
+            if (codigo.indexOf(caractere) >= 0) {
+                if (!achados.isEmpty()) {
+                    achados.append(", ");
+                }
+                achados.append(caractere);
+            }
+        }
+        if (achados.isEmpty()) {
+            return null;
+        }
+        return "Os códigos gerados nunca usam 0, 1, O, I nem L, e este tem "
+                + achados + ". Confira se não houve troca na leitura.";
     }
 }

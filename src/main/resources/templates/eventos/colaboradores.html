@@ -6,6 +6,9 @@
 <header th:replace="~{layout :: topo}"></header>
 
 <div class="container" id="conteudo">
+
+    <a class="voltar" th:href="@{/eventos/{id}(id=${evento.id})}">Voltar ao evento</a>
+
     <h1>Colaboradores</h1>
     <p class="sub" th:text="${evento.nome}">Evento</p>
 

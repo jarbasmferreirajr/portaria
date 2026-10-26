@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import br.com.portaria.evento.Evento;
 import br.com.portaria.evento.ServicoDeEventos;
@@ -28,10 +29,13 @@ public class ControladorInscricaoPublica {
 
     private final ServicoDeEventos eventos;
     private final ServicoDeInscricoes inscricoes;
+    private final ComprovanteDeInscricao comprovante;
 
-    public ControladorInscricaoPublica(ServicoDeEventos eventos, ServicoDeInscricoes inscricoes) {
+    public ControladorInscricaoPublica(ServicoDeEventos eventos, ServicoDeInscricoes inscricoes,
+                                       ComprovanteDeInscricao comprovante) {
         this.eventos = eventos;
         this.inscricoes = inscricoes;
+        this.comprovante = comprovante;
     }
 
     /** Dados que o participante preenche, com as regras de validação. */
@@ -92,7 +96,14 @@ public class ControladorInscricaoPublica {
             Inscricao inscricao = inscricoes.inscrever(evento, formulario.getNome(),
                     formulario.getEmail(), formulario.getTelefone(),
                     formulario.getMotoclube(), formulario.getCidade());
-            return "redirect:/e/" + identificador + "/confirmado/" + inscricao.getCodigo();
+
+            String caminho = "/e/" + identificador + "/confirmado/" + inscricao.getCodigo();
+
+            // Depois de gravada, nunca dentro da transação: ver ComprovanteDeInscricao.
+            comprovante.enviar(inscricao, evento, ServletUriComponentsBuilder
+                    .fromCurrentContextPath().path(caminho).toUriString());
+
+            return "redirect:" + caminho;
         } catch (ServicoDeInscricoes.InscricaoRecusada recusa) {
             modelo.addAttribute("erroInscricao", recusa.getMessage());
             return PAGINA_INSCRICAO;

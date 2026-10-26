@@ -6,6 +6,9 @@
 <header th:replace="~{layout :: topo}"></header>
 
 <div class="container" id="conteudo">
+
+    <a class="voltar" th:href="@{/eventos}">Eventos</a>
+
     <h1 th:text="${evento.nome}">Evento</h1>
     <p class="sub">
         <span th:text="${evento.local}">Local</span> &middot;
@@ -73,18 +76,35 @@
     <div class="cartao">
         <h2>Link público de inscrição</h2>
         <p class="sub compacta">Divulgue este endereço. Não exige login.</p>
-        <input type="text" readonly onclick="this.select()" th:value="${linkPublico}">
+        <div class="linha-com-acao">
+            <input type="text" id="link-publico" readonly th:value="${linkPublico}">
+            <button type="button" class="botao-secundario" id="copiar-link">Copiar</button>
+        </div>
         <p class="dica">
             <a th:href="@{/e/{identificador}(identificador=${evento.identificadorPublico})}" target="_blank">Abrir a página de inscrição</a>
         </p>
     </div>
 
     <div class="cartao">
-        <h2>Inscritos</h2>
+        <div class="barra-cartao">
+            <h2>Inscritos</h2>
+            <!-- A busca filtra no navegador, sobre as linhas que já estão na
+                 página. Ir ao servidor para reordenar dado que o navegador já
+                 tem seria uma ida e volta sem ganho -- e, na portaria, uma ida
+                 e volta que pode não voltar. -->
+            <div class="ferramentas" th:if="${!#lists.isEmpty(inscricoes)}">
+                <input type="search" id="busca" autocomplete="off"
+                       placeholder="Buscar nome, código ou motoclube"
+                       aria-label="Buscar nos inscritos">
+                <a class="botao botao-secundario botao-mini"
+                   th:href="@{/eventos/{id}/inscritos.csv(id=${evento.id})}">Baixar CSV</a>
+            </div>
+        </div>
+
         <div class="tabela-rolavel">
-            <table th:if="${!#lists.isEmpty(inscricoes)}">
+            <table th:if="${!#lists.isEmpty(inscricoes)}" id="tabela-inscritos">
                 <thead>
-                <tr><th>Nome</th><th>Motoclube</th><th>Cidade</th><th>Código</th></tr>
+                <tr><th>Nome</th><th>Motoclube</th><th>Cidade</th><th>Código</th><th>Situação</th></tr>
                 </thead>
                 <tbody>
                 <tr th:each="i : ${inscricoes}">
@@ -95,13 +115,27 @@
                     <td th:text="${i.motoclube} ?: '—'">—</td>
                     <td th:text="${i.cidade} ?: '—'">—</td>
                     <td class="codigo" th:text="${i.codigo}">ABC123</td>
+                    <td>
+                        <span class="situacao presente" th:if="${entradas.containsKey(i.id)}">
+                            Presente &middot;
+                            <span th:text="${#temporals.format(entradas.get(i.id), 'HH:mm')}">00:00</span>
+                        </span>
+                        <span class="situacao aguardando"
+                              th:unless="${entradas.containsKey(i.id)}">Aguardando</span>
+                    </td>
                 </tr>
                 </tbody>
             </table>
         </div>
+
+        <p class="vazio" id="sem-resultado" hidden>
+            Nenhum inscrito corresponde à busca.
+        </p>
         <p class="vazio" th:if="${#lists.isEmpty(inscricoes)}">Nenhuma inscrição ainda.</p>
     </div>
 </div>
+
+<script th:src="@{/js/evento-detalhe.js}" defer></script>
 
 </body>
 </html>

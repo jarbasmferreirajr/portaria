@@ -87,6 +87,20 @@ class ServicoDeCheckInTest {
         ResultadoCheckIn resultado = servicoDeCheckIn.registrarPorCodigo("ZZZZZZ", eventoId, "admin");
 
         assertThat(resultado.isNaoEncontrado()).isTrue();
+        assertThat(resultado.dica()).isNull();
+        assertThat(checkIns.count()).isZero();
+    }
+
+    @Test
+    @DisplayName("Caractere que o gerador nunca usa vira dica de leitura, não erro genérico")
+    void caractereImpossivelViraDica() {
+        // O alfabeto do GeradorDeCodigo exclui 0/O e 1/I/L. Se um deles foi
+        // digitado, houve troca na leitura -- e dizer qual caractere é o
+        // suspeito poupa o operador de conferir o código inteiro.
+        ResultadoCheckIn resultado = servicoDeCheckIn.registrarPorCodigo("K7O2QX", eventoId, "admin");
+
+        assertThat(resultado.isNaoEncontrado()).isTrue();
+        assertThat(resultado.dica()).contains("O");
         assertThat(checkIns.count()).isZero();
     }
 }

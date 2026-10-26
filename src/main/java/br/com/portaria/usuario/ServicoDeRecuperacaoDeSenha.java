@@ -1,5 +1,7 @@
 package br.com.portaria.usuario;
 
+import br.com.portaria.email.EnviadorDeEmail;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;

@@ -245,23 +245,50 @@ mvn spring-boot:run -Dspring-boot.run.profiles=postgres  # PostgreSQL
 
 ### Subir o PostgreSQL local
 
-Com Docker, que não instala nada no sistema e some sem deixar rastro:
+Três caminhos. O primeiro é o usado no desenvolvimento deste projeto, e é o
+único que não depende de serviço do Windows nem de Docker.
+
+**1. Cluster próprio, iniciado à mão** *(recomendado)*
+
+Cria um banco dentro da pasta do usuário, com os binários de uma instalação
+PostgreSQL já existente. Não registra serviço, não exige privilégio de
+administrador e não interfere em nenhuma outra instalação.
+
+```powershell
+& "C:\Program Files\PostgreSQL\18\bin\initdb.exe" -D "$env:USERPROFILE\pgdata-portaria" -U postgres -W --encoding=UTF8
+```
+
+```powershell
+& "C:\Program Files\PostgreSQL\18\bin\pg_ctl.exe" -D "$env:USERPROFILE\pgdata-portaria" -o "-p 5432" -l "$env:USERPROFILE\pgdata-portaria\servidor.log" start
+```
+
+```powershell
+& "C:\Program Files\PostgreSQL\18\bin\psql.exe" -h localhost -p 5432 -U postgres -c "CREATE USER portaria WITH PASSWORD 'portaria';" -c "CREATE DATABASE portaria OWNER portaria;"
+```
+
+O `initdb` roda uma vez só. Nas próximas vezes, apenas o `pg_ctl ... start`.
+Para parar, o mesmo comando com `stop` no lugar de `start`. O servidor **não**
+volta sozinho depois de reiniciar o Windows.
+
+**2. Docker**
 
 ```sh
 docker run -d --name portaria-db -p 5432:5432 \
   -e POSTGRES_DB=portaria -e POSTGRES_USER=portaria \
-  -e POSTGRES_PASSWORD=portaria postgres:17
+  -e POSTGRES_PASSWORD=portaria postgres:18
 ```
 
-Ou, com o PostgreSQL instalado, no `psql`:
+**3. PostgreSQL instalado como serviço**
+
+Com o serviço no ar, no `psql`:
 
 ```sql
 CREATE USER portaria WITH PASSWORD 'portaria';
 CREATE DATABASE portaria OWNER portaria;
 ```
 
-O banco pode subir vazio: o Flyway cria o esquema inteiro da V1 à V7 na
-primeira execução.
+Em qualquer um dos três, o banco pode subir vazio: o Flyway cria o esquema
+inteiro da V1 à V7 na primeira execução.
 
 ### Por que as migrações atravessaram sem mudança
 
@@ -365,6 +392,37 @@ secundário e passa a ser caminho principal. Foi promovido ao topo do backlog.
 **Consequência 3.** Em evento de dois dias, uma presença por inscrição não
 basta: interessa saber quem esteve no sábado e quem esteve no domingo. Isso
 reabre a discussão de check-in por dia ou por atividade, e não apenas por evento.
+
+## Pendências de ambiente
+
+Não são do projeto: são da máquina de desenvolvimento. Ficam registradas aqui
+porque atrapalharam uma sprint inteira e vão voltar a atrapalhar se ninguém
+lembrar do contexto.
+
+**O serviço `postgresql-x64-18` não inicia.** Roda com `NT AUTHORITY\NetworkService`,
+e falha sem escrever nada no log do PostgreSQL nem no log de eventos do Windows
+— ou seja, morre antes de o servidor chegar a subir. O diretório de dados está
+íntegro (a última execução, em 10/10/2026, terminou com desligamento limpo).
+Por isso o projeto passou a usar um cluster próprio iniciado à mão, descrito
+acima. É contorno, não conserto.
+
+**O Docker Desktop não sobe.** O motor não responde em
+`npipe:////./pipe/dockerDesktopLinuxEngine`. Suspeita principal: conflito com o
+VirtualBox instalado na mesma máquina, que disputa o subsistema de
+virtualização.
+
+**Cuidado ao consertar o segundo:** a correção usual para o Docker Desktop
+passa por habilitar WSL2 ou Hyper-V, e isso pode inutilizar as VMs do
+VirtualBox. É uma escolha, não um ajuste — vale decidir antes o que importa
+mais naquela máquina.
+
+Nenhum dos dois bloqueia nada: o sistema roda em H2 sem qualquer um deles, e em
+PostgreSQL com o cluster próprio. Resolver ambos ficou agendado para **entre a
+entrega do PI-I e a primeira sprint do PI-II**, nessa ordem — o serviço
+primeiro, por ser o mais provável de ter conserto simples e por resolver
+sozinho a comodidade de o banco subir com o Windows.
+
+---
 
 ## Backlog priorizado
 

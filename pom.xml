@@ -24,8 +24,9 @@
             2.3.232. Sem esta linha, o Boot resolve uma versao mais nova e o
             Flyway avisa a cada subida que a combinacao nao foi verificada.
             Fixamos a versao validada para manter o log limpo.
-            O H2 e so de desenvolvimento; quando o PostgreSQL entrar, esta
-            propriedade pode sair.
+            A propriedade continua necessaria mesmo com o PostgreSQL em uso:
+            o H2 segue sendo o banco do perfil dev e o dos testes, entao o
+            aviso continuaria aparecendo a cada subida sem ela.
         -->
         <h2.version>2.3.232</h2.version>
     </properties>

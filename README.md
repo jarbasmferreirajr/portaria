@@ -104,8 +104,14 @@ Depois, abrir <http://localhost:8080>.
 
 | | |
 |---|---|
-| Usuário | `admin` |
+| E-mail | `admin@portaria.local` |
 | Senha | `portaria123` |
+
+O login é pelo **e-mail**, não por um apelido: para o Spring Security, o
+identificador da conta é o endereço — o mesmo que a recuperação de senha usa
+para achar a pessoa. Errar o identificador devolve a mesma mensagem que errar
+a senha ("credenciais inválidas"), de propósito, para não revelar quais
+e-mails têm conta.
 
 A aplicação cria sozinha um evento de exemplo com quatro inscritos na primeira
 execução, para haver o que demonstrar imediatamente.

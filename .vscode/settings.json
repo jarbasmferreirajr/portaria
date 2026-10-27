@@ -17,14 +17,11 @@
     // maquina mora em arquivo da maquina, nunca no repositorio.
     //
     // O projeto exige Java 25 -- isso esta no pom.xml, que e o lugar certo.
-
     // Servidor de linguagem com memoria suficiente para o projeto inteiro.
     "java.jdt.ls.vmargs": "-XX:+UseParallelGC -XX:GCTimeRatio=4 -XX:AdaptiveSizePolicyWeight=90 -Dsun.zip.disableMemoryMapping=true -Xmx2G -Xms100m -Xlog:disable",
-
     // A analise de nulos da extensao marca como aviso coisas que o Spring
     // resolve em tempo de execucao (injecao, proxies). Ruido sem ganho.
     "java.compile.nullAnalysis.mode": "disabled",
-
     // Mexeu no pom.xml: a extensao pergunta antes de recarregar, em vez de
     // recarregar sozinha no meio da digitacao.
     "java.configuration.updateBuildConfiguration": "interactive"

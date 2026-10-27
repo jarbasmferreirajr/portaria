@@ -844,6 +844,19 @@ tbody tr:hover { background: var(--superficie-2); }
   font-weight: 700;
 }
 
+/* Confirmação do código.
+   Alvo largo e alto de propósito: o uso real é polegar, de pé, no portão,
+   possivelmente com luva ou com a mão molhada. A altura vem de padding e
+   não de height, para o botão crescer junto com a fonte de quem aumenta o
+   tamanho do texto no sistema. */
+.botao-confirmar {
+  width: 100%;
+  margin-top: var(--espaco-3);
+  padding: var(--espaco-4);
+  font-size: var(--fonte-md);
+  letter-spacing: .12em;
+}
+
 /* A área de retorno tem altura mínima fixa para que o campo não suba e
    desça a cada leitura -- com a fila andando, elemento que se mexe é
    elemento que se erra. */
@@ -1128,6 +1141,8 @@ button.perigo:hover { filter: brightness(1.12); color: #fff; background: var(--e
   .acoes-secundarias button { flex: 1 1 auto; text-align: center; padding: var(--espaco-3) var(--espaco-4); }
 
   .entrada-codigo { font-size: 1.75rem; letter-spacing: .22em; }
+  /* No celular o botão é o caminho principal, não a alternativa. */
+  .botao-confirmar { padding: var(--espaco-5) var(--espaco-4); font-size: var(--fonte-lg); }
   .codigo-grande { font-size: 2rem; padding: var(--espaco-4); }
 
   .ferramentas { width: 100%; }

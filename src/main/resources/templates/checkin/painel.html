@@ -59,7 +59,20 @@
                 <label for="codigo">Código do participante</label>
                 <input class="entrada-codigo" type="text" id="codigo" name="codigo"
                        maxlength="10" autocomplete="off" autocapitalize="characters"
-                       spellcheck="false" placeholder="ABC123" autofocus>
+                       spellcheck="false" placeholder="ABC123" enterkeyhint="go" autofocus>
+
+                <!-- O botão existe para o celular. No portão o operador está de
+                     pé, com o aparelho numa das mãos, e o teclado virtual não
+                     tem uma tecla Enter evidente -- depender dela é deixar a
+                     fila parada enquanto a pessoa procura.
+
+                     Ele NÃO substitui o Enter: o leitor USB de código de barras
+                     se comporta como teclado e envia Enter por conta própria.
+                     Os dois caminhos levam à mesma submissão, e cada um serve a
+                     um jeito de trabalhar -- balcão com leitor, ou celular na
+                     mão. O enterkeyhint acima ainda faz o teclado virtual
+                     rotular a tecla como "Ir", para quem preferir. -->
+                <button type="submit" class="botao-confirmar">Confirmar entrada</button>
             </form>
 
             <!-- O retorno fica logo abaixo do campo, dentro do mesmo cartão.
@@ -134,8 +147,9 @@
 
             <div class="rodape-portaria">
                 <p class="dica sem-margem">
-                    Digite o código e pressione Enter. Um leitor USB de código de barras
-                    funciona sem nenhuma configuração — ele se comporta como teclado.
+                    Digite o código e toque em Confirmar, ou pressione Enter. Um leitor
+                    USB de código de barras funciona sem nenhuma configuração — ele se
+                    comporta como teclado e envia o Enter sozinho.
                 </p>
                 <!-- Som ligado por padrão: no portão o operador olha para a pessoa,
                      não para a tela. O estado fica no navegador do próprio

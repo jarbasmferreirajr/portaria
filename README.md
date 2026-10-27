@@ -37,7 +37,7 @@ este núcleo.
 | Migrações | Flyway + `flyway-database-postgresql` | BOM |
 | Banco (dev e teste) | H2 em arquivo | **2.3.232** |
 | Banco (produção) | PostgreSQL | BOM (driver) |
-| Build | Maven (sem wrapper no repositório) | — |
+| Build | Maven, via wrapper (`mvnw`) | **3.9.9** |
 
 Os números em negrito são os que o `pom.xml` fixa. **BOM** quer dizer que a
 versão vem do `spring-boot-starter-parent` 4.1.1, que a resolve e a mantém
@@ -84,11 +84,19 @@ evento fala "fazer o check-in", não "registrar a presença".
 
 ## Como rodar
 
-Requisito único: **JDK 25**. Não precisa instalar banco de dados.
+Requisito único: **JDK 25**. Não precisa instalar banco de dados — nem Maven.
 
 ```bash
-mvn spring-boot:run
+./mvnw spring-boot:run
 ```
+
+No Windows: `mvnw.cmd spring-boot:run`.
+
+O `mvnw` é o *Maven Wrapper*. Na primeira execução ele baixa o Maven 3.9.9 (uma
+vez, para fora do projeto) e passa a usá-lo sempre. A versão do Maven fica assim
+registrada no repositório, em `.mvn/wrapper/maven-wrapper.properties`, em vez de
+depender do que cada máquina tem instalado. Quem já tem Maven pode chamar `mvn`
+direto — funciona igual, só sem essa garantia.
 
 Ou executar a classe `AplicacaoPortaria` pela IDE.
 
@@ -276,8 +284,8 @@ O projeto tem dois perfis, e o banco é a única diferença entre eles:
 | `postgres` | PostgreSQL | Produção, e sempre que se quiser conferir o comportamento real. |
 
 ```sh
-mvn spring-boot:run                                      # dev / H2
-mvn spring-boot:run -Dspring-boot.run.profiles=postgres  # PostgreSQL
+./mvnw spring-boot:run                                      # dev / H2
+./mvnw spring-boot:run -Dspring-boot.run.profiles=postgres  # PostgreSQL
 ```
 
 ### Subir o PostgreSQL local
@@ -453,14 +461,7 @@ passa por habilitar WSL2 ou Hyper-V, e isso pode inutilizar as VMs do
 VirtualBox. É uma escolha, não um ajuste — vale decidir antes o que importa
 mais naquela máquina.
 
-**Falta o Maven Wrapper.** Este é o único dos três que é do projeto, e não da
-máquina: sem `mvnw`, quem clonar precisa ter Maven instalado e numa versão
-compatível. O wrapper fixa a versão do Maven dentro do repositório — o mesmo
-princípio que levou os caminhos de JDK para fora das configurações do editor,
-só que aqui a fonte da verdade passa a ser o repositório. `mvn wrapper:wrapper`
-gera os arquivos; a seção "Como rodar" muda junto.
-
-Nenhum dos três bloqueia nada: o sistema roda em H2 sem qualquer um deles, e em
+Nenhum dos dois bloqueia nada: o sistema roda em H2 sem qualquer um deles, e em
 PostgreSQL com o cluster próprio. Resolver ambos ficou agendado para **entre a
 entrega do PI-I e a primeira sprint do PI-II**, nessa ordem — o serviço
 primeiro, por ser o mais provável de ter conserto simples e por resolver

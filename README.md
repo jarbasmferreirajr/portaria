@@ -22,6 +22,43 @@ este núcleo.
 
 ---
 
+## Stacks Utilizadas
+
+| Camada | Tecnologia | Versão |
+|---|---|---|
+| Linguagem | Java (Temurin) | **25** |
+| Framework | Spring Boot | **4.1.1** |
+| Telas | Spring MVC + Thymeleaf (gera HTML5) | BOM |
+| Estilo | CSS próprio, sem framework | — |
+| Scripts | JavaScript padrão, sem framework nem build | — |
+| Interatividade | htmx (WebJar servido pela aplicação) | **1.9.12** |
+| Segurança | Spring Security | BOM |
+| Persistência | Spring Data JPA + Hibernate | BOM |
+| Migrações | Flyway + `flyway-database-postgresql` | BOM |
+| Banco (dev e teste) | H2 em arquivo | **2.3.232** |
+| Banco (produção) | PostgreSQL | BOM (driver) |
+| Build | Maven (sem wrapper no repositório) | — |
+
+Os números em negrito são os que o `pom.xml` fixa. **BOM** quer dizer que a
+versão vem do `spring-boot-starter-parent` 4.1.1, que a resolve e a mantém
+coerente com todo o resto; `mvn dependency:tree` mostra as resolvidas.
+
+Elas não estão escritas aqui de propósito. Número copiado à mão para dentro de
+um texto envelhece em silêncio: a dependência sobe, o README continua afirmando
+a versão antiga, e ninguém percebe porque nada quebra. Onde existe uma fonte
+única da verdade, o lugar do número é lá.
+
+Não há framework de CSS nem de JavaScript, e não há etapa de build de
+*frontend*: são 12 templates Thymeleaf, uma folha de estilo e três scripts,
+escritos à mão. A identidade visual descrita adiante depende disso — ela não
+sobreviveria por cima de um tema pronto.
+
+Nenhum recurso é buscado da internet em tempo de execução: as fontes (com as
+licenças no repositório), o htmx e o CSS são servidos pela própria aplicação,
+porque o sistema precisa funcionar sem rede no dia do evento.
+
+---
+
 ## Convenção de idioma
 
 O código é escrito em **português brasileiro**. O inglês aparece apenas onde é
@@ -416,7 +453,14 @@ passa por habilitar WSL2 ou Hyper-V, e isso pode inutilizar as VMs do
 VirtualBox. É uma escolha, não um ajuste — vale decidir antes o que importa
 mais naquela máquina.
 
-Nenhum dos dois bloqueia nada: o sistema roda em H2 sem qualquer um deles, e em
+**Falta o Maven Wrapper.** Este é o único dos três que é do projeto, e não da
+máquina: sem `mvnw`, quem clonar precisa ter Maven instalado e numa versão
+compatível. O wrapper fixa a versão do Maven dentro do repositório — o mesmo
+princípio que levou os caminhos de JDK para fora das configurações do editor,
+só que aqui a fonte da verdade passa a ser o repositório. `mvn wrapper:wrapper`
+gera os arquivos; a seção "Como rodar" muda junto.
+
+Nenhum dos três bloqueia nada: o sistema roda em H2 sem qualquer um deles, e em
 PostgreSQL com o cluster próprio. Resolver ambos ficou agendado para **entre a
 entrega do PI-I e a primeira sprint do PI-II**, nessa ordem — o serviço
 primeiro, por ser o mais provável de ter conserto simples e por resolver

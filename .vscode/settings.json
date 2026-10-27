@@ -1,22 +1,31 @@
 {
+    // Este arquivo e versionado: vale para qualquer pessoa que clonar o
+    // repositorio. Por isso NAO guarda caminho de JDK.
+    //
+    // Caminho de JDK tem numero de versao dentro
+    // ("...\\jdk-25.0.5.8-hotspot"). Quando o Temurin atualiza para 25.0.6 a
+    // pasta muda de nome e tudo que apontava para ela quebra -- e quebra de
+    // um jeito confuso: o Maven cai de volta no PATH e compila, enquanto a
+    // extensao de Java reclama de "Invalid runtime".
+    //
+    // Onde o JDK e declarado, entao:
+    //   JAVA_HOME     variavel de ambiente do Windows (do usuario)
+    //   extensao      "Detect Jdks At Start" acha os JDKs instalados sozinha
+    //
+    // Se a deteccao automatica falhar nesta maquina, o mapeamento explicito
+    // (java.configuration.runtimes) vai no settings.json DO USUARIO. Fato da
+    // maquina mora em arquivo da maquina, nunca no repositorio.
+    //
+    // O projeto exige Java 25 -- isso esta no pom.xml, que e o lugar certo.
+
+    // Servidor de linguagem com memoria suficiente para o projeto inteiro.
     "java.jdt.ls.vmargs": "-XX:+UseParallelGC -XX:GCTimeRatio=4 -XX:AdaptiveSizePolicyWeight=90 -Dsun.zip.disableMemoryMapping=true -Xmx2G -Xms100m -Xlog:disable",
+
+    // A analise de nulos da extensao marca como aviso coisas que o Spring
+    // resolve em tempo de execucao (injecao, proxies). Ruido sem ganho.
     "java.compile.nullAnalysis.mode": "disabled",
-    "java.configuration.updateBuildConfiguration": "interactive",
-    "java.configuration.runtimes": [
-        {
-            "name": "JavaSE-25",
-            "path": "C:\\Program Files\\Eclipse Adoptium\\jdk-25.0.4.101-hotspot",
-            "default": true
-        }
-    ],
-    "terminal.integrated.env.windows": {
-        "JAVA_HOME": "C:\\Program Files\\Eclipse Adoptium\\jdk-25.0.4.101-hotspot",
-        "PATH": "C:\\Program Files\\Eclipse Adoptium\\jdk-25.0.4.101-hotspot\\bin;${env:PATH}"
-    },
-    "maven.terminal.customEnv": [
-        {
-            "environmentVariable": "JAVA_HOME",
-            "value": "C:\\Program Files\\Eclipse Adoptium\\jdk-25.0.4.101-hotspot"
-        }
-    ]
+
+    // Mexeu no pom.xml: a extensao pergunta antes de recarregar, em vez de
+    // recarregar sozinha no meio da digitacao.
+    "java.configuration.updateBuildConfiguration": "interactive"
 }

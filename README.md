@@ -84,23 +84,112 @@ evento fala "fazer o check-in", não "registrar a presença".
 
 ## Como rodar
 
-Requisito único: **JDK 25**. Não precisa instalar banco de dados — nem Maven.
-
-```bash
-./mvnw spring-boot:run
-```
-
-No Windows: `mvnw.cmd spring-boot:run`.
+Requisito único: **JDK 25**. Não precisa instalar Maven.
 
 O `mvnw` é o *Maven Wrapper*. Na primeira execução ele baixa o Maven 3.9.9 (uma
 vez, para fora do projeto) e passa a usá-lo sempre. A versão do Maven fica assim
 registrada no repositório, em `.mvn/wrapper/maven-wrapper.properties`, em vez de
 depender do que cada máquina tem instalado. Quem já tem Maven pode chamar `mvn`
-direto — funciona igual, só sem essa garantia.
+direto — funciona igual, só sem essa garantia. Nos exemplos abaixo, `mvnw.cmd` é
+a forma do Windows; em Linux e macOS, `./mvnw`.
 
-Ou executar a classe `AplicacaoPortaria` pela IDE.
+São três perfis, e cada um tem o seu modo de execução.
 
-Depois, abrir <http://localhost:8080>.
+### Perfil `postgres` — o principal
+
+É o banco que a aplicação tem em produção, e é nele que o sistema deve ser visto
+funcionando. O cluster não sobe junto com o Windows (ver "Ambiente"), então a
+rotina começa iniciando o banco.
+
+**Na primeira vez**, o cluster e o banco precisam ser criados — ver
+"Subir o PostgreSQL local", adiante. Depois disso, só os passos abaixo.
+
+**1. Iniciar o cluster**
+
+```powershell
+& "C:\Program Files\PostgreSQL\18\bin\pg_ctl.exe" -D "$env:USERPROFILE\pgdata-portaria" -o "-p 5432" -l "$env:USERPROFILE\pgdata-portaria\servidor.log" start
+```
+
+**2. Conferir que ele aceita conexão**
+
+```powershell
+& "C:\Program Files\PostgreSQL\18\bin\pg_isready.exe" -h localhost -p 5432
+```
+
+Esperado: `localhost:5432 - aceitando conexões`. O passo parece dispensável e não
+é: o `pg_ctl` devolve o prompt antes de o servidor estar pronto, e subir a
+aplicação nesse intervalo dá um erro de conexão que parece problema de
+configuração sem ser.
+
+Se vier `nenhuma resposta`, o passo 1 não funcionou — não adianta seguir.
+
+**3. Rodar os testes**
+
+```powershell
+.\mvnw.cmd clean test
+```
+
+Esperado: `Tests run: 34, Failures: 0, Errors: 0`.
+
+**4. Subir a aplicação**
+
+```powershell
+.\mvnw.cmd spring-boot:run "-Dspring-boot.run.profiles=postgres"
+```
+
+As aspas em volta do `-D...` são obrigatórias no PowerShell. Sem elas ele parte o
+argumento no ponto, e o Maven recebe `.run.profiles=postgres` como se fosse uma
+fase do ciclo de vida — o erro é `Unknown lifecycle phase`, que não diz nada
+sobre aspas.
+
+**5. Usar** — <http://localhost:8080>. No log, a linha
+`The following 1 profile is active: "postgres"` confirma que você está no banco
+certo, e não no H2.
+
+**6. Encerrar a aplicação** — `Ctrl+C` no terminal onde ela está rodando.
+
+**7. Parar o cluster**
+
+```powershell
+& "C:\Program Files\PostgreSQL\18\bin\pg_ctl.exe" -D "$env:USERPROFILE\pgdata-portaria" stop
+```
+
+Não é obrigatório, mas banco no ar à toa ocupa memória e segura a porta 5432 —
+e esquecer disso é o que faz a próxima tentativa de usar outra instalação de
+PostgreSQL falhar sem explicação.
+
+### Perfil `dev` — clone e rode
+
+Não exige nada instalado além do JDK, e funciona sem rede. É o caminho de quem
+abre o projeto pela primeira vez, e a alternativa confiável quando o cluster não
+sobe.
+
+```powershell
+.\mvnw.cmd spring-boot:run
+```
+
+Ou executar a classe `AplicacaoPortaria` pela IDE. O banco é um arquivo H2 em
+`./data/portaria`, criado sozinho, e pode ser inspecionado ao vivo em
+`/h2-console` (URL JDBC `jdbc:h2:file:./data/portaria`, usuário `sa`, senha em
+branco). Esse console **só existe neste perfil**.
+
+### Perfil `test` — só durante os testes
+
+```powershell
+.\mvnw.cmd clean test
+```
+
+Roda contra um H2 **em memória**, que nasce e morre com o processo. Não tem
+endereço e não toca em nenhum dos outros bancos. Prova que o código está íntegro
+— quem prova que o esquema do PostgreSQL está correto é a subida no perfil
+`postgres`, onde o `ddl-auto=validate` derruba a aplicação se as entidades não
+baterem com as migrações.
+
+O `clean` está aí de propósito: sem ele, o Maven reaproveita o que está em
+`target/` e pula a compilação, o que esconde erro de versão de JDK até o momento
+mais inconveniente.
+
+### Entrar no sistema
 
 | | |
 |---|---|
@@ -113,8 +202,10 @@ para achar a pessoa. Errar o identificador devolve a mesma mensagem que errar
 a senha ("credenciais inválidas"), de propósito, para não revelar quais
 e-mails têm conta.
 
-A aplicação cria sozinha um evento de exemplo com quatro inscritos na primeira
-execução, para haver o que demonstrar imediatamente.
+Essa conta é semeada na primeira execução de cada banco, junto com um evento de
+exemplo com quatro inscritos, para haver o que demonstrar imediatamente. Como o
+sistema permite alterar e-mail e senha pelas próprias telas, **estes valores
+valem enquanto ninguém os tiver trocado** — vale conferir antes de apresentar.
 
 ### Roteiro de demonstração (3 minutos)
 
@@ -127,8 +218,10 @@ execução, para haver o que demonstrar imediatamente.
    Este é o ponto técnico central da entrega.
 7. Digitar um código inventado → não encontrado.
 
-O banco pode ser inspecionado ao vivo em `/h2-console`
-(URL JDBC `jdbc:h2:file:./data/portaria`, usuário `sa`, senha em branco).
+No perfil `postgres`, o banco é inspecionado com qualquer cliente —
+a extensão de PostgreSQL do VS Code, o DBeaver ou o `psql` — em
+`localhost:5432`, banco `portaria`, usuário `portaria`. No perfil `dev`, pelo
+`/h2-console` embutido.
 
 ---
 
@@ -282,12 +375,32 @@ A troca é de **configuração, não de código**. Nenhuma das sete migrações 
 reescrita: elas estão em SQL padrão desde a primeira sprint, e esta seção é a
 cobrança dessa aposta.
 
-O projeto tem dois perfis, e o banco é a única diferença entre eles:
+O projeto tem três perfis. O banco é a única diferença entre eles:
 
-| Perfil | Banco | Quando |
+| Perfil | Banco | Papel |
 |---|---|---|
-| `dev` *(padrão)* | H2 em arquivo (`./data/portaria`) | Desenvolvimento e apresentação. Não exige nada instalado e roda sem rede. |
-| `postgres` | PostgreSQL | Produção, e sempre que se quiser conferir o comportamento real. |
+| `dev` *(padrão)* | H2 em arquivo (`./data/portaria`) | Porta de entrada. Clone o repositório e rode: não exige nada instalado e funciona sem rede. |
+| `test` | H2 em memória | Só durante `./mvnw test`. Nasce e morre com o processo; não tem endereço. |
+| `postgres` | PostgreSQL | **Perfil de demonstração e de produção.** É nele que o sistema deve ser visto funcionando. |
+
+**A partir da Sprint 5, `postgres` é o perfil de trabalho.** Desenvolvimento
+diário e demonstrações acontecem nele, porque é o banco que a aplicação terá em
+produção e porque algumas diferenças de comportamento só aparecem ali — o
+PostgreSQL aborta a transação inteira quando uma restrição estoura, enquanto o
+H2 é mais tolerante. É exatamente por isso que a gravação da presença vive em
+transação própria (ver "Decisões de arquitetura"); rodando em PostgreSQL, uma
+regressão nesse ponto aparece no mesmo dia.
+
+O `dev` **não** foi aposentado, e isso é deliberado. Ele é o caminho de quem
+clona o projeto pela primeira vez, é o que permite demonstrar a portabilidade ao
+vivo — a mesma migração, o mesmo código, outro banco — e é a alternativa
+confiável se o cluster local não subir na hora de apresentar.
+
+Perfil não é ambiente. Os três são a mesma aplicação, na mesma máquina, com
+configurações diferentes: `dev` e `postgres` respondem no mesmo
+`http://localhost:8080` e por isso sobem um de cada vez. Um ambiente de produção
+de verdade seria a aplicação instalada num servidor, com `SPRING_PROFILES_ACTIVE`
+e as credenciais vindo do ambiente — assunto de PI-II.
 
 ```sh
 ./mvnw spring-boot:run                                      # dev / H2
@@ -296,76 +409,18 @@ O projeto tem dois perfis, e o banco é a única diferença entre eles:
 
 ### Subir o PostgreSQL local
 
-O cluster deste projeto **não sobe junto com o Windows** — é decisão, e o porquê
-está em "Ambiente", mais adiante. Então existe uma rotina antes de trabalhar com
-PostgreSQL. Ela é curta e é sempre a mesma.
+Esta seção cria o cluster e o banco — operação que acontece **uma vez** na vida
+da máquina. A rotina de todo dia (iniciar, rodar, parar) está em "Como rodar", no
+começo deste documento.
 
-Vale guardar um ponto que confunde: DBeaver, a extensão do VS Code e o `psql`
-**não iniciam** o banco. Eles abrem conexão com um servidor que já precisa estar
-no ar. Sem o passo 1, o que vem é `conexão recusada`.
-
-#### Todo dia: quatro passos
-
-**1. Iniciar o cluster**
-
-```powershell
-& "C:\Program Files\PostgreSQL\18\bin\pg_ctl.exe" -D "$env:USERPROFILE\pgdata-portaria" -o "-p 5432" -l "$env:USERPROFILE\pgdata-portaria\servidor.log" start
-```
-
-**2. Conferir que ele aceita conexão**
-
-```powershell
-& "C:\Program Files\PostgreSQL\18\bin\pg_isready.exe" -h localhost -p 5432
-```
-
-Resposta esperada: `localhost:5432 - accepting connections`. Este passo parece
-dispensável e não é: o `pg_ctl` devolve o prompt antes de o servidor estar
-pronto, e subir a aplicação nesse intervalo dá um erro de conexão que parece
-problema de configuração sem ser.
-
-**3. Rodar os testes**
-
-```powershell
-.\mvnw.cmd clean test
-```
-
-Esperado: `Tests run: 34, Failures: 0, Errors: 0`. Vale saber o que este passo
-cobre e o que não cobre — os testes rodam no perfil `test`, contra um H2 **em
-memória**, e por isso não tocam no cluster que você acabou de iniciar. Eles
-provam que o código está íntegro, não que a conexão com o PostgreSQL está. Quem
-prova isso é o passo 4: se o esquema criado pelas migrações não batesse com as
-entidades, o `ddl-auto=validate` derrubaria a subida.
-
-O `clean` está aí de propósito. Sem ele, o Maven reaproveita o que está em
-`target/` e pula a compilação — o que esconde erro de versão de JDK até o
-momento mais inconveniente.
-
-**4. Subir a aplicação no perfil `postgres`**
-
-```powershell
-.\mvnw.cmd spring-boot:run "-Dspring-boot.run.profiles=postgres"
-```
-
-As aspas em volta do `-D...` são obrigatórias no PowerShell. Sem elas ele parte o
-argumento no ponto, e o Maven recebe `.run.profiles=postgres` como se fosse uma
-fase do ciclo de vida — o erro é `Unknown lifecycle phase`, que não diz nada
-sobre aspas.
-
-**Ao terminar**, parar o cluster — mesmo comando do passo 1, com `stop` no lugar
-de `start`:
-
-```powershell
-& "C:\Program Files\PostgreSQL\18\bin\pg_ctl.exe" -D "$env:USERPROFILE\pgdata-portaria" stop
-```
-
-Não é obrigatório, mas deixar o banco no ar à toa ocupa memória e segura a porta
-5432 — e esquecer disso é o que faz a próxima tentativa de usar outra instalação
-de PostgreSQL falhar sem explicação.
+O cluster **não sobe junto com o Windows** — é decisão, e o porquê está em
+"Ambiente", adiante. E vale guardar um ponto que confunde: DBeaver, a extensão de
+PostgreSQL do VS Code e o `psql` **não iniciam** o banco. Eles abrem conexão com
+um servidor que já precisa estar no ar; sem ninguém rodando, o que vem é
+`conexão recusada` — nas duas pilhas, IPv6 e IPv4. Quando só uma das duas falha,
+aí sim o problema costuma ser de configuração de escuta.
 
 #### Só na primeira vez
-
-Estes dois comandos criam o cluster e o banco. Rodam **uma vez** na vida da
-máquina; depois disso, só os três passos acima.
 
 ```powershell
 & "C:\Program Files\PostgreSQL\18\bin\initdb.exe" -D "$env:USERPROFILE\pgdata-portaria" -U postgres -W --encoding=UTF8
@@ -375,8 +430,8 @@ máquina; depois disso, só os três passos acima.
 & "C:\Program Files\PostgreSQL\18\bin\psql.exe" -h localhost -p 5432 -U postgres -c "CREATE USER portaria WITH PASSWORD 'portaria';" -c "CREATE DATABASE portaria OWNER portaria;"
 ```
 
-O `psql` acima precisa do cluster já iniciado — ou seja, o passo 1 vem no meio
-dos dois. O `CREATE USER` e o `CREATE DATABASE` existem porque as credenciais do
+O `psql` acima precisa do cluster já iniciado — ou seja, o `pg_ctl ... start`
+(passo 1 de "Como rodar") vem entre os dois comandos. O `CREATE USER` e o `CREATE DATABASE` existem porque as credenciais do
 `application-postgres.properties` são `portaria`/`portaria`, e não as do
 superusuário.
 

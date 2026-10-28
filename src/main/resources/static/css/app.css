@@ -797,17 +797,6 @@ tbody tr:hover { background: var(--superficie-2); }
   background-image: var(--risco);
 }
 
-.credenciais-demo {
-  margin-top: var(--espaco-4);
-  padding: var(--espaco-3);
-  text-align: center;
-  font-size: var(--fonte-sm);
-  color: var(--texto-fraco);
-  background: var(--superficie-2);
-  border-radius: var(--raio-sm);
-}
-.credenciais-demo strong { color: var(--texto); font-weight: 600; }
-
 /* ---------- código de inscrição ---------- */
 /* Mono com zero cortado e I com serifa: 0/O e 1/l/I não se confundem.
    É escolha funcional -- o operador digita o que lê do celular do

@@ -296,32 +296,97 @@ O projeto tem dois perfis, e o banco é a única diferença entre eles:
 
 ### Subir o PostgreSQL local
 
-Três caminhos. O primeiro é o usado no desenvolvimento deste projeto, e é o
-único que não depende de serviço do Windows nem de Docker.
+O cluster deste projeto **não sobe junto com o Windows** — é decisão, e o porquê
+está em "Ambiente", mais adiante. Então existe uma rotina antes de trabalhar com
+PostgreSQL. Ela é curta e é sempre a mesma.
 
-**1. Cluster próprio, iniciado à mão** *(recomendado)*
+Vale guardar um ponto que confunde: DBeaver, a extensão do VS Code e o `psql`
+**não iniciam** o banco. Eles abrem conexão com um servidor que já precisa estar
+no ar. Sem o passo 1, o que vem é `conexão recusada`.
 
-Cria um banco dentro da pasta do usuário, com os binários de uma instalação
-PostgreSQL já existente. Não registra serviço, não exige privilégio de
-administrador e não interfere em nenhuma outra instalação.
+#### Todo dia: quatro passos
+
+**1. Iniciar o cluster**
+
+```powershell
+& "C:\Program Files\PostgreSQL\18\bin\pg_ctl.exe" -D "$env:USERPROFILE\pgdata-portaria" -o "-p 5432" -l "$env:USERPROFILE\pgdata-portaria\servidor.log" start
+```
+
+**2. Conferir que ele aceita conexão**
+
+```powershell
+& "C:\Program Files\PostgreSQL\18\bin\pg_isready.exe" -h localhost -p 5432
+```
+
+Resposta esperada: `localhost:5432 - accepting connections`. Este passo parece
+dispensável e não é: o `pg_ctl` devolve o prompt antes de o servidor estar
+pronto, e subir a aplicação nesse intervalo dá um erro de conexão que parece
+problema de configuração sem ser.
+
+**3. Rodar os testes**
+
+```powershell
+.\mvnw.cmd clean test
+```
+
+Esperado: `Tests run: 34, Failures: 0, Errors: 0`. Vale saber o que este passo
+cobre e o que não cobre — os testes rodam no perfil `test`, contra um H2 **em
+memória**, e por isso não tocam no cluster que você acabou de iniciar. Eles
+provam que o código está íntegro, não que a conexão com o PostgreSQL está. Quem
+prova isso é o passo 4: se o esquema criado pelas migrações não batesse com as
+entidades, o `ddl-auto=validate` derrubaria a subida.
+
+O `clean` está aí de propósito. Sem ele, o Maven reaproveita o que está em
+`target/` e pula a compilação — o que esconde erro de versão de JDK até o
+momento mais inconveniente.
+
+**4. Subir a aplicação no perfil `postgres`**
+
+```powershell
+.\mvnw.cmd spring-boot:run "-Dspring-boot.run.profiles=postgres"
+```
+
+As aspas em volta do `-D...` são obrigatórias no PowerShell. Sem elas ele parte o
+argumento no ponto, e o Maven recebe `.run.profiles=postgres` como se fosse uma
+fase do ciclo de vida — o erro é `Unknown lifecycle phase`, que não diz nada
+sobre aspas.
+
+**Ao terminar**, parar o cluster — mesmo comando do passo 1, com `stop` no lugar
+de `start`:
+
+```powershell
+& "C:\Program Files\PostgreSQL\18\bin\pg_ctl.exe" -D "$env:USERPROFILE\pgdata-portaria" stop
+```
+
+Não é obrigatório, mas deixar o banco no ar à toa ocupa memória e segura a porta
+5432 — e esquecer disso é o que faz a próxima tentativa de usar outra instalação
+de PostgreSQL falhar sem explicação.
+
+#### Só na primeira vez
+
+Estes dois comandos criam o cluster e o banco. Rodam **uma vez** na vida da
+máquina; depois disso, só os três passos acima.
 
 ```powershell
 & "C:\Program Files\PostgreSQL\18\bin\initdb.exe" -D "$env:USERPROFILE\pgdata-portaria" -U postgres -W --encoding=UTF8
 ```
 
 ```powershell
-& "C:\Program Files\PostgreSQL\18\bin\pg_ctl.exe" -D "$env:USERPROFILE\pgdata-portaria" -o "-p 5432" -l "$env:USERPROFILE\pgdata-portaria\servidor.log" start
-```
-
-```powershell
 & "C:\Program Files\PostgreSQL\18\bin\psql.exe" -h localhost -p 5432 -U postgres -c "CREATE USER portaria WITH PASSWORD 'portaria';" -c "CREATE DATABASE portaria OWNER portaria;"
 ```
 
-O `initdb` roda uma vez só. Nas próximas vezes, apenas o `pg_ctl ... start`.
-Para parar, o mesmo comando com `stop` no lugar de `start`. O servidor **não**
-volta sozinho depois de reiniciar o Windows.
+O `psql` acima precisa do cluster já iniciado — ou seja, o passo 1 vem no meio
+dos dois. O `CREATE USER` e o `CREATE DATABASE` existem porque as credenciais do
+`application-postgres.properties` são `portaria`/`portaria`, e não as do
+superusuário.
 
-**2. Docker**
+O banco pode ficar vazio: o Flyway cria o esquema inteiro, da V1 à V7, na
+primeira execução da aplicação.
+
+#### Caminhos alternativos
+
+**Docker** — um comando no lugar de todo o resto, quando o Docker Desktop
+estiver funcionando nesta máquina (ver "Ambiente"):
 
 ```sh
 docker run -d --name portaria-db -p 5432:5432 \
@@ -329,17 +394,13 @@ docker run -d --name portaria-db -p 5432:5432 \
   -e POSTGRES_PASSWORD=portaria postgres:18
 ```
 
-**3. PostgreSQL instalado como serviço**
-
-Com o serviço no ar, no `psql`:
+**PostgreSQL como serviço do Windows** — com o serviço no ar, basta criar o
+usuário e o banco, no `psql`:
 
 ```sql
 CREATE USER portaria WITH PASSWORD 'portaria';
 CREATE DATABASE portaria OWNER portaria;
 ```
-
-Em qualquer um dos três, o banco pode subir vazio: o Flyway cria o esquema
-inteiro da V1 à V7 na primeira execução.
 
 ### Por que as migrações atravessaram sem mudança
 
@@ -444,34 +505,43 @@ secundário e passa a ser caminho principal. Foi promovido ao topo do backlog.
 basta: interessa saber quem esteve no sábado e quem esteve no domingo. Isso
 reabre a discussão de check-in por dia ou por atividade, e não apenas por evento.
 
-## Pendências de ambiente
+## Ambiente: uma decisão e uma pendência
 
-Não são do projeto: são da máquina de desenvolvimento. Ficam registradas aqui
-porque atrapalharam uma sprint inteira e vão voltar a atrapalhar se ninguém
-lembrar do contexto.
+Nenhuma das duas é do projeto — são da máquina de desenvolvimento. Ficam
+registradas aqui porque custaram tempo e vão voltar a custar se ninguém lembrar
+do contexto.
 
-**O serviço `postgresql-x64-18` não inicia.** Roda com `NT AUTHORITY\NetworkService`,
+### Decidido: o PostgreSQL sobe sob demanda, não como serviço
+
+O serviço `postgresql-x64-18` não inicia. Roda com `NT AUTHORITY\NetworkService`
 e falha sem escrever nada no log do PostgreSQL nem no log de eventos do Windows
 — ou seja, morre antes de o servidor chegar a subir. O diretório de dados está
 íntegro (a última execução, em 10/10/2026, terminou com desligamento limpo).
-Por isso o projeto passou a usar um cluster próprio iniciado à mão, descrito
-acima. É contorno, não conserto.
 
-**O Docker Desktop não sobe.** O motor não responde em
-`npipe:////./pipe/dockerDesktopLinuxEngine`. Suspeita principal: conflito com o
-VirtualBox instalado na mesma máquina, que disputa o subsistema de
-virtualização.
+**Não vamos consertar, e isso é escolha, não desistência.** Banco de
+desenvolvimento não precisa subir junto com o sistema operacional: fica ocupando
+memória e porta o dia inteiro para ser usado em uma fração dele. O projeto usa um
+cluster próprio, iniciado com `pg_ctl start` quando se vai trabalhar com
+PostgreSQL, e parado depois.
 
-**Cuidado ao consertar o segundo:** a correção usual para o Docker Desktop
-passa por habilitar WSL2 ou Hyper-V, e isso pode inutilizar as VMs do
-VirtualBox. É uma escolha, não um ajuste — vale decidir antes o que importa
-mais naquela máquina.
+Vale saber o que isso implica, porque é fácil se enganar: DBeaver, a extensão do
+VS Code e o `psql` **não iniciam o banco**. Eles abrem uma conexão para um
+servidor que já precisa estar no ar — com nenhum rodando, o que se recebe é
+`conexão recusada`. O `pg_ctl start` vem antes, sempre.
 
-Nenhum dos dois bloqueia nada: o sistema roda em H2 sem qualquer um deles, e em
-PostgreSQL com o cluster próprio. Resolver ambos ficou agendado para **entre a
-entrega do PI-I e a primeira sprint do PI-II**, nessa ordem — o serviço
-primeiro, por ser o mais provável de ter conserto simples e por resolver
-sozinho a comodidade de o banco subir com o Windows.
+### Pendente: o Docker Desktop não sobe
+
+O motor não responde em `npipe:////./pipe/dockerDesktopLinuxEngine`. Suspeita
+principal: conflito com o VirtualBox instalado na mesma máquina, que disputa o
+subsistema de virtualização.
+
+**Cuidado ao consertar:** a correção usual passa por habilitar WSL2 ou Hyper-V, e
+isso pode inutilizar as VMs do VirtualBox. É uma escolha, não um ajuste — vale
+decidir antes o que importa mais naquela máquina.
+
+Não bloqueia nada: o sistema roda em H2 sem Docker, e em PostgreSQL com o cluster
+próprio. Resolver ficou agendado para **entre a entrega do PI-I e a primeira
+sprint do PI-II**.
 
 ---
 

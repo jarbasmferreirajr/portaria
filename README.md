@@ -218,10 +218,9 @@ valem enquanto ninguém os tiver trocado** — vale conferir antes de apresentar
    Este é o ponto técnico central da entrega.
 7. Digitar um código inventado → não encontrado.
 
-No perfil `postgres`, o banco é inspecionado com qualquer cliente —
-a extensão de PostgreSQL do VS Code, o DBeaver ou o `psql` — em
-`localhost:5432`, banco `portaria`, usuário `portaria`. No perfil `dev`, pelo
-`/h2-console` embutido.
+No perfil `postgres`, o banco é inspecionado com qualquer cliente — a extensão de
+PostgreSQL do VS Code, o DBeaver ou o `psql` — em `localhost:5432`, banco
+`portaria`, usuário `portaria`. No perfil `dev`, pelo `/h2-console` embutido.
 
 ---
 
@@ -253,7 +252,9 @@ que um código um pouco maior.
 
 **Leitor USB sai de graça.** Leitores de código de barras se comportam como
 teclado (HID): digitam o código e pressionam Enter. O campo de digitação manual
-*é* a integração com o hardware — sem driver, sem SDK, sem dependência.
+*é* a integração com o hardware — sem driver, sem SDK, sem dependência. O botão
+"Confirmar entrada" existe ao lado dele para o celular, onde não há tecla Enter
+evidente; os dois caminhos levam à mesma submissão.
 
 **Migrações com Flyway, em SQL padrão.** O esquema é criado exclusivamente pelas
 migrações e o Hibernate roda em `validate`. O SQL evita tipos proprietários, de
@@ -323,10 +324,13 @@ fila andando.
   cada leitura. Elemento que se mexe é elemento que se erra.
 - **`aria-live="assertive"`** no retorno do check-in: o leitor de tela anuncia o
   resultado sem o operador procurar.
-- **Aviso sonoro** com três sinais distintos (dois tons subindo para liberado,
-  dois iguais para já registrado, um grave longo para desconhecido), gerados pelo
+- **Aviso sonoro** com três sinais distintos (um sino para liberado, dois tons
+  iguais para já registrado, um grave áspero para desconhecido), gerados pelo
   próprio navegador — sem arquivo de áudio e sem internet. No portão o operador
   olha para a pessoa, não para a tela.
+- **Alvos grandes no celular.** O botão de confirmação cresce em telas estreitas,
+  e a altura vem de espaçamento e não de medida fixa, para acompanhar quem
+  aumenta o tamanho do texto no sistema.
 - **Falha de rede aparece na tela.** Antes, se a requisição não chegasse, nada
   mudava e o operador achava que tinha registrado a entrada.
 - **`color-scheme: dark`**, que faz o calendário nativo dos campos de data abrir
@@ -431,7 +435,8 @@ aí sim o problema costuma ser de configuração de escuta.
 ```
 
 O `psql` acima precisa do cluster já iniciado — ou seja, o `pg_ctl ... start`
-(passo 1 de "Como rodar") vem entre os dois comandos. O `CREATE USER` e o `CREATE DATABASE` existem porque as credenciais do
+(passo 1 de "Como rodar") vem entre os dois comandos. O `CREATE USER` e o
+`CREATE DATABASE` existem porque as credenciais do
 `application-postgres.properties` são `portaria`/`portaria`, e não as do
 superusuário.
 
@@ -440,8 +445,8 @@ primeira execução da aplicação.
 
 #### Caminhos alternativos
 
-**Docker** — um comando no lugar de todo o resto, quando o Docker Desktop
-estiver funcionando nesta máquina (ver "Ambiente"):
+**Docker** — um comando no lugar de todo o resto. Exige o Docker Desktop aberto
+e com o motor no ar (ver "Ambiente"):
 
 ```sh
 docker run -d --name portaria-db -p 5432:5432 \
@@ -502,8 +507,6 @@ recente dá exatamente o mesmo erro. O que falta é a dependência:
 O H2 nunca precisou disso porque o suporte a ele já vem embutido no núcleo —
 o que torna o problema invisível até o dia em que o segundo banco entra.
 
----
-
 ### Credenciais
 
 As do arquivo `application-postgres.properties` são do banco **local**, e por
@@ -560,11 +563,17 @@ secundário e passa a ser caminho principal. Foi promovido ao topo do backlog.
 basta: interessa saber quem esteve no sábado e quem esteve no domingo. Isso
 reabre a discussão de check-in por dia ou por atividade, e não apenas por evento.
 
-## Ambiente: uma decisão e uma pendência
+---
+
+## Ambiente: duas decisões
 
 Nenhuma das duas é do projeto — são da máquina de desenvolvimento. Ficam
 registradas aqui porque custaram tempo e vão voltar a custar se ninguém lembrar
 do contexto.
+
+As duas seguem o mesmo princípio: **serviço de desenvolvimento sobe sob demanda,
+não junto com o sistema operacional.** E as duas esbarraram no mesmo
+mal-entendido — ferramenta cliente não inicia servidor, ela só conecta.
 
 ### Decidido: o PostgreSQL sobe sob demanda, não como serviço
 
@@ -584,19 +593,26 @@ VS Code e o `psql` **não iniciam o banco**. Eles abrem uma conexão para um
 servidor que já precisa estar no ar — com nenhum rodando, o que se recebe é
 `conexão recusada`. O `pg_ctl start` vem antes, sempre.
 
-### Pendente: o Docker Desktop não sobe
+### Decidido: o Docker também sobe sob demanda
 
-O motor não responde em `npipe:////./pipe/dockerDesktopLinuxEngine`. Suspeita
-principal: conflito com o VirtualBox instalado na mesma máquina, que disputa o
-subsistema de virtualização.
+O Docker Desktop funciona nesta máquina. O erro `failed to connect to the docker
+API` em `npipe:////./pipe/dockerDesktopLinuxEngine`, registrado antes como
+defeito, era outra coisa: o motor não estava no ar quando o comando foi dado.
+Mesmo mal-entendido do PostgreSQL — `docker ps` e `psql` conectam, não iniciam.
 
-**Cuidado ao consertar:** a correção usual passa por habilitar WSL2 ou Hyper-V, e
-isso pode inutilizar as VMs do VirtualBox. É uma escolha, não um ajuste — vale
-decidir antes o que importa mais naquela máquina.
+A rotina é a mesma: abrir o Docker Desktop, esperar o indicador do canto inferior
+esquerdo ficar verde em `Engine running`, usar, e fechar ao terminar. O
+`wsl -l -v` confirma de fora: com o motor no ar, a distribuição `docker-desktop`
+aparece como `Running`.
 
-Não bloqueia nada: o sistema roda em H2 sem Docker, e em PostgreSQL com o cluster
-próprio. Resolver ficou agendado para **entre a entrega do PI-I e a primeira
-sprint do PI-II**.
+O WSL2 já está habilitado nesta máquina — todas as distribuições aparecem em
+`VERSION 2` —, então o alerta antigo sobre conflito com o VirtualBox não se
+aplica: não há nada a habilitar, e a convivência entre os dois já é a de hoje.
+
+Com o Docker disponível, o caminho de contêiner descrito em "Subir o PostgreSQL
+local" passa a valer de fato — um comando no lugar do cluster próprio, quando for
+conveniente — e o teste de integração com Testcontainers deixa de ter impedimento
+de ambiente para o PI-II.
 
 ---
 

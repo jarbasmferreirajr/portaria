@@ -44,7 +44,10 @@
                 </p>
             </form>
 
-            <div class="credenciais-demo">
+            <!-- Só aparece onde portaria.demonstracao estiver ligada: hoje, o
+                 perfil dev. Em producao a pagina de login nao anuncia senha
+                 nenhuma -- ver ControladorPaginaInicial. -->
+            <div class="credenciais-demo" th:if="${demonstracao}">
                 Acesso de demonstração &middot; <strong>admin@portaria.local</strong> / <strong>portaria123</strong>
             </div>
         </div>

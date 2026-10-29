@@ -267,6 +267,11 @@ PostgreSQL do VS Code, o DBeaver ou o `psql` — em `localhost:5432`, banco
 
 ## Decisões de arquitetura
 
+> Os diagramas estão em **[docs/arquitetura.md](docs/arquitetura.md)**: fluxo do
+> check-in ponta a ponta, modelo de dados, dependências entre pacotes, perfis e
+> fornecedores de banco, e o fluxo da inscrição pública. Esta seção explica as
+> decisões; lá elas estão desenhadas.
+
 **Monolito modular, um pacote por domínio.** `evento`, `inscricao`, `checkin`.
 Microsserviços foram descartados: não há problema de escala nem de times
 independentes que os justifique, e o custo operacional destruiria o prazo.

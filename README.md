@@ -38,6 +38,13 @@ este núcleo.
 | Banco (dev e teste) | H2 em arquivo | **2.3.232** |
 | Banco (produção) | PostgreSQL | BOM (driver) |
 | Build | Maven, via wrapper (`mvnw`) | **3.9.9** |
+| Banco em contêiner *(alternativa em dev)* | Docker, imagem `postgres` | **18** |
+
+O Docker é a única linha que não é dependência da aplicação: ele aparece como
+forma alternativa de prover o PostgreSQL durante o desenvolvimento, no lugar de
+instalar o banco na máquina. **A aplicação não é distribuída como contêiner** —
+não há `Dockerfile` no projeto e o artefato continua sendo o jar do Spring Boot.
+Containerizar a própria aplicação é assunto de PI-II.
 
 Os números em negrito são os que o `pom.xml` fixa. **BOM** quer dizer que a
 versão vem do `spring-boot-starter-parent` 4.1.1, que a resolve e a mantém

@@ -35,8 +35,9 @@ este núcleo.
 | Segurança | Spring Security | BOM |
 | Persistência | Spring Data JPA + Hibernate | BOM |
 | Migrações | Flyway + `flyway-database-postgresql` | BOM |
-| Banco (dev e teste) | H2 em arquivo | **2.3.232** |
-| Banco (produção) | PostgreSQL | BOM (driver) |
+| Banco (dev) | H2 em arquivo | **2.3.232** |
+| Banco (teste) | H2 em memória | **2.3.232** |
+| Banco (demonstração e produção) | PostgreSQL | **18** *(driver pela BOM)* |
 | Build | Maven, via wrapper (`mvnw`) | **3.9.9** |
 | Banco em contêiner *(alternativa em dev)* | Docker, imagem `postgres` | **18** |
 
@@ -100,7 +101,27 @@ depender do que cada máquina tem instalado. Quem já tem Maven pode chamar `mvn
 direto — funciona igual, só sem essa garantia. Nos exemplos abaixo, `mvnw.cmd` é
 a forma do Windows; em Linux e macOS, `./mvnw`.
 
-São três perfis, e cada um tem o seu modo de execução.
+São três perfis, e cada um tem o seu modo de execução. Antes dos passos, vale
+separar dois eixos que é fácil embaralhar: **o perfil diz o que a aplicação
+procura; quem fornece aquilo é outra coisa.**
+
+| Perfil | O que a aplicação procura | Quem fornece |
+|---|---|---|
+| `postgres` | PostgreSQL em `localhost:5432/portaria` | o cluster próprio **ou** um contêiner Docker — à escolha |
+| `dev` | H2 em arquivo `./data/portaria` | a própria aplicação; não exige nada instalado |
+| `test` | H2 em memória | a própria aplicação, durante os testes |
+
+O perfil `postgres` **não tem como saber quem atendeu**. O
+`application-postgres.properties` pede um PostgreSQL naquele endereço, com banco,
+usuário e senha `portaria`, e pronto. Foi exatamente isso que o teste de 29/10
+mostrou: mesmo perfil, mesmo comando, mesma configuração — e do outro lado um
+contêiner no lugar do cluster. A aplicação não percebeu diferença, e é esse o
+ponto.
+
+Os dois disputam a porta 5432, então vale um por vez. O critério prático é o que
+acontece com os dados: o **cluster** os mantém entre sessões, e é o que você quer
+quando está desenvolvendo ao longo de dias; o **contêiner** os descarta no
+`docker rm`, e é o que você quer quando precisa de um banco limpo.
 
 ### Perfil `postgres` — o principal
 
@@ -111,11 +132,20 @@ rotina começa iniciando o banco.
 **Na primeira vez**, o cluster e o banco precisam ser criados — ver
 "Subir o PostgreSQL local", adiante. Depois disso, só os passos abaixo.
 
-**1. Iniciar o cluster**
+**1. Subir o banco** — pelo cluster próprio:
 
 ```powershell
 & "C:\Program Files\PostgreSQL\18\bin\pg_ctl.exe" -D "$env:USERPROFILE\pgdata-portaria" -o "-p 5432" -l "$env:USERPROFILE\pgdata-portaria\servidor.log" start
 ```
+
+Ou, se preferir o contêiner — mesma porta, mesmas credenciais, banco limpo:
+
+```powershell
+docker run -d --name portaria-db -p 5432:5432 -e POSTGRES_DB=portaria -e POSTGRES_USER=portaria -e POSTGRES_PASSWORD=portaria postgres:18
+```
+
+Um ou outro, nunca os dois: com o cluster no ar, o `docker run` falha com
+`port is already allocated`. Detalhes em "Caminhos alternativos", adiante.
 
 **2. Conferir que ele aceita conexão**
 
@@ -160,6 +190,9 @@ certo, e não no H2.
 ```powershell
 & "C:\Program Files\PostgreSQL\18\bin\pg_ctl.exe" -D "$env:USERPROFILE\pgdata-portaria" stop
 ```
+
+Com o contêiner, o equivalente é `docker stop portaria-db` — e `docker rm
+portaria-db` se quiser descartar os dados junto.
 
 Não é obrigatório, mas banco no ar à toa ocupa memória e segura a porta 5432 —
 e esquecer disso é o que faz a próxima tentativa de usar outra instalação de
@@ -220,7 +253,8 @@ valem enquanto ninguém os tiver trocado** — vale conferir antes de apresentar
 2. Abrir o evento de exemplo e **copiar o link público**.
 3. Abrir o link em uma aba anônima e fazer uma inscrição — anote o código.
 4. Voltar ao painel e clicar em **Abrir painel de portaria**.
-5. Digitar o código e pressionar Enter → entrada liberada, contador sobe.
+5. Digitar o código e confirmar — botão **Confirmar entrada** ou Enter → entrada
+   liberada, contador sobe.
 6. **Digitar o mesmo código de novo** → "já registrado", e o contador *não* sobe.
    Este é o ponto técnico central da entrega.
 7. Digitar um código inventado → não encontrado.
@@ -265,7 +299,9 @@ evidente; os dois caminhos levam à mesma submissão.
 
 **Migrações com Flyway, em SQL padrão.** O esquema é criado exclusivamente pelas
 migrações e o Hibernate roda em `validate`. O SQL evita tipos proprietários, de
-modo que a mesma migração roda no H2 hoje e no PostgreSQL depois.
+modo que a mesma migração roda nos dois — o que deixou de ser promessa em
+29/10/2026, quando o esquema foi construído do zero num PostgreSQL em contêiner
+sem uma linha de SQL ter sido reescrita.
 
 ---
 
@@ -380,13 +416,14 @@ um `Builder` uma vez e reaproveitando nos três pontos de rota.
 
 ---
 
-## Banco de dados: H2 em desenvolvimento, PostgreSQL em produção
+## Banco de dados: três perfis, dois bancos
 
 A troca é de **configuração, não de código**. Nenhuma das sete migrações foi
 reescrita: elas estão em SQL padrão desde a primeira sprint, e esta seção é a
 cobrança dessa aposta.
 
-O projeto tem três perfis. O banco é a única diferença entre eles:
+O projeto tem três perfis. O banco é a diferença principal — o perfil `dev`
+liga, além disso, o console do H2:
 
 | Perfil | Banco | Papel |
 |---|---|---|
@@ -679,5 +716,5 @@ Deliberadamente fora desta entrega. Cada item tem justificativa de domínio — 
 | **QR code** | Camada sobre o código curto. Exige HTTPS: a câmera do navegador só funciona em contexto seguro. |
 | **Capacidade sob concorrência** | Hoje é *check-then-act*; duas requisições podem disputar a última vaga. |
 | **Comprovante conforme o tipo de evento** | Certificado com carga horária (acadêmico), comprovante simples (cultural), nenhum. Variação por polimorfismo, não por condicional. |
-| **Papéis e múltiplos operadores** | Hoje há um único usuário mantido em memória. |
+| **Mostrar quem registrou cada entrada** | A coluna `registrado_por` de `check_in` é gravada a cada leitura e nunca exibida. Com vários operadores no portão, é o dado que responde "quem liberou esta pessoa?". |
 | **Retenção de dados / LGPD** | Definir base legal e prazo de descarte dos dados pessoais coletados. |

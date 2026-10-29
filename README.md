@@ -445,14 +445,43 @@ primeira execução da aplicação.
 
 #### Caminhos alternativos
 
-**Docker** — um comando no lugar de todo o resto. Exige o Docker Desktop aberto
-e com o motor no ar (ver "Ambiente"):
+**Docker** — um comando no lugar de toda a criação do cluster. Exige o Docker
+Desktop aberto e com o motor no ar (ver "Ambiente"), e a porta 5432 livre: o
+contêiner e o cluster próprio disputam a mesma, e com o cluster no ar o
+`docker run` falha com `port is already allocated`.
+
+No PowerShell, em **uma linha só** — a barra invertida de continuação é sintaxe
+de shell Unix e não funciona lá:
+
+```powershell
+docker run -d --name portaria-db -p 5432:5432 -e POSTGRES_DB=portaria -e POSTGRES_USER=portaria -e POSTGRES_PASSWORD=portaria postgres:18
+```
+
+Em Linux ou macOS:
 
 ```sh
 docker run -d --name portaria-db -p 5432:5432 \
   -e POSTGRES_DB=portaria -e POSTGRES_USER=portaria \
   -e POSTGRES_PASSWORD=portaria postgres:18
 ```
+
+O `docker run` devolve o identificador do contêiner assim que ele inicia, o que
+não significa que o banco já aceite conexão — o PostgreSQL ainda inicializa o
+diretório de dados por dentro. Vale o mesmo `pg_isready` do passo 2 de "Como
+rodar" antes de subir a aplicação.
+
+Daí em diante, a rotina é a de "Como rodar" a partir do passo 3 — o contêiner
+substitui apenas os passos 1 e 2. Para parar e remover:
+
+```powershell
+docker stop portaria-db
+docker rm portaria-db
+```
+
+`docker rm` **apaga os dados**: o contêiner guarda o banco num volume anônimo que
+morre com ele. É o que se quer de um banco descartável de desenvolvimento, e é a
+diferença em relação ao cluster próprio, que sobrevive entre sessões. Para só
+pausar sem perder nada, use `docker stop` e depois `docker start portaria-db`.
 
 **PostgreSQL como serviço do Windows** — com o serviço no ar, basta criar o
 usuário e o banco, no `psql`:
@@ -609,10 +638,23 @@ O WSL2 já está habilitado nesta máquina — todas as distribuições aparecem
 `VERSION 2` —, então o alerta antigo sobre conflito com o VirtualBox não se
 aplica: não há nada a habilitar, e a convivência entre os dois já é a de hoje.
 
-Com o Docker disponível, o caminho de contêiner descrito em "Subir o PostgreSQL
-local" passa a valer de fato — um comando no lugar do cluster próprio, quando for
-conveniente — e o teste de integração com Testcontainers deixa de ter impedimento
-de ambiente para o PI-II.
+O caminho de contêiner foi exercitado de ponta a ponta em 29/10/2026, e o
+resultado vale como evidência da portabilidade. Num `postgres:18` criado minutos
+antes, vazio, a aplicação subiu no perfil `postgres` e o Flyway construiu o
+esquema inteiro — as sete migrações registradas com `success = t`, nenhuma linha
+de SQL escrita para este banco. O `ddl-auto=validate` passou, o `DadosIniciais`
+semeou um administrador, um evento e quatro inscrições, e uma segunda subida
+contra o mesmo banco não repetiu nada: o Flyway reconheceu a versão 7 e seguiu.
+
+O check-in também foi exercitado ali, e esse teste importa mais no PostgreSQL do
+que no H2: o mesmo código lido duas vezes devolveu "já registrado", o contador
+não subiu e a tela continuou atendendo. É a restrição `UNIQUE (inscricao_id)`
+disparando e a transação própria do `RegistroDePresenca` absorvendo a violação —
+no banco que aborta a transação inteira quando uma restrição estoura, e onde o H2
+seria tolerante demais para expor um erro.
+
+Com isso, o teste de integração com Testcontainers deixa de ter impedimento de
+ambiente para o PI-II.
 
 ---
 

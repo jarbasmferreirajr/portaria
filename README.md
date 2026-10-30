@@ -27,7 +27,7 @@ este núcleo.
 | Camada | Tecnologia | Versão |
 |---|---|---|
 | Linguagem | Java (Temurin) | **25** |
-| Framework | Spring Boot | **4.1.1** |
+| Framework | Spring Boot | **4.1.2** |
 | Telas | Spring MVC + Thymeleaf (gera HTML5) | BOM |
 | Estilo | CSS próprio, sem framework | — |
 | Scripts | JavaScript padrão, sem framework nem build | — |
@@ -48,7 +48,7 @@ não há `Dockerfile` no projeto e o artefato continua sendo o jar do Spring Boo
 Containerizar a própria aplicação é assunto de PI-II.
 
 Os números em negrito são os que o `pom.xml` fixa. **BOM** quer dizer que a
-versão vem do `spring-boot-starter-parent` 4.1.1, que a resolve e a mantém
+versão vem do `spring-boot-starter-parent` 4.1.2, que a resolve e a mantém
 coerente com todo o resto; `mvn dependency:tree` mostra as resolvidas.
 
 Elas não estão escritas aqui de propósito. Número copiado à mão para dentro de

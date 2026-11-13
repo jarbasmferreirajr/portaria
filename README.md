@@ -163,7 +163,10 @@ Dê uns segundos entre um comando e outro: o `docker run` devolve o prompt antes
 de o banco aceitar conexão. O segundo comando não leva perfil porque `postgres`
 já é o padrão, e o Flyway cria o esquema inteiro na primeira subida.
 
-Em qualquer um dos dois, o sistema fica em <http://localhost:8080>.
+Em qualquer um dos dois, o sistema fica em <http://localhost:8080>. Entre com
+`admin@portaria.local` e senha `portaria123`: essa conta é semeada na primeira
+execução de cada banco, junto com um evento de exemplo com quatro inscritos,
+para haver o que demonstrar imediatamente.
 
 Os comandos de `pg_ctl` que aparecem logo adiante são de uma instalação local do
 PostgreSQL, com caminhos da máquina de desenvolvimento. Em outra máquina, o

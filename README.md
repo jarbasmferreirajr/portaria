@@ -4,6 +4,14 @@ Gerenciador de eventos com inscrições e check-in presencial.
 
 Projeto Integrador I — IFSC Gaspar.
 
+**Documentação**
+
+- [Manual do Usuário](docs/manual-do-usuario.md) · [versão em PDF](docs/manual-do-usuario.pdf)
+  — como usar o sistema, tela a tela, para organizador, colaborador e participante.
+- [Arquitetura](docs/arquitetura.md) — diagramas do fluxo de check-in, do modelo de
+  dados, das dependências entre pacotes e dos perfis de execução.
+- Este README — instalação, decisões técnicas e o que ficou para o PI-II.
+
 ---
 
 ## O que o sistema faz

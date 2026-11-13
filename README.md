@@ -47,7 +47,7 @@ este núcleo.
 | Banco (teste) | H2 em memória | **2.3.232** |
 | Banco (demonstração e produção) | PostgreSQL | **18** *(driver pela BOM)* |
 | Build | Maven, via wrapper (`mvnw`) | **3.9.9** |
-| Banco em contêiner *(alternativa em dev)* | Docker, imagem `postgres` | **18** |
+| Banco em contêiner *(alternativa ao cluster)* | Docker, imagem `postgres` | **18** |
 
 O Docker é a única linha que não é dependência da aplicação: ele aparece como
 forma alternativa de prover o PostgreSQL durante o desenvolvimento, no lugar de
@@ -100,7 +100,11 @@ evento fala "fazer o check-in", não "registrar a presença".
 
 ## Como rodar
 
-Requisito único: **JDK 25**. Não precisa instalar Maven.
+Para compilar e rodar os testes, requisito único: **JDK 25**. Não precisa
+instalar Maven. O perfil `postgres`, que é o padrão, pede também um PostgreSQL
+em `localhost:5432`, fornecido pelo cluster da máquina ou por um contêiner, como
+os passos adiante mostram. Com o JDK sozinho, o caminho que roda de ponta a
+ponta é o perfil `dev`.
 
 O `mvnw` é o *Maven Wrapper*. Na primeira execução ele baixa o Maven 3.9.9 (uma
 vez, para fora do projeto) e passa a usá-lo sempre. A versão do Maven fica assim
@@ -137,8 +141,10 @@ quando está desenvolvendo ao longo de dias; o **contêiner** os descarta no
 funcionando. O cluster não sobe junto com o Windows (ver "Ambiente"), então a
 rotina começa iniciando o banco.
 
-**Na primeira vez**, o cluster e o banco precisam ser criados — ver
-"Subir o PostgreSQL local", adiante. Depois disso, só os passos abaixo.
+**Na primeira vez**, o cluster e o banco precisam ser criados, ver "Subir o
+PostgreSQL local", adiante. Depois disso, só os passos abaixo. Pelo contêiner
+não existe primeira vez: o `docker run` do passo 1 cria banco, usuário e senha
+a partir das variáveis que recebe, e o cluster nem precisa estar instalado.
 
 **1. Subir o banco** — pelo cluster próprio:
 

@@ -104,7 +104,8 @@ Para compilar e rodar os testes, requisito único: **JDK 25**. Não precisa
 instalar Maven. O perfil `postgres`, que é o padrão, pede também um PostgreSQL
 em `localhost:5432`, fornecido pelo cluster da máquina ou por um contêiner, como
 os passos adiante mostram. Com o JDK sozinho, o caminho que roda de ponta a
-ponta é o perfil `dev`.
+ponta é o perfil `dev`. Quem acabou de clonar o repositório pode ir direto a
+"Para quem acabou de clonar", logo abaixo.
 
 O `mvnw` é o *Maven Wrapper*. Na primeira execução ele baixa o Maven 3.9.9 (uma
 vez, para fora do projeto) e passa a usá-lo sempre. A versão do Maven fica assim
@@ -134,6 +135,45 @@ Os dois disputam a porta 5432, então vale um por vez. O critério prático é o
 acontece com os dados: o **cluster** os mantém entre sessões, e é o que você quer
 quando está desenvolvendo ao longo de dias; o **contêiner** os descarta no
 `docker rm`, e é o que você quer quando precisa de um banco limpo.
+
+### Para quem acabou de clonar
+
+Dois caminhos, nesta ordem.
+
+**O mais rápido**, sem instalar banco nenhum:
+
+```powershell
+.\mvnw.cmd spring-boot:run "-Dspring-boot.run.profiles=dev"
+```
+
+Sobe em H2, num arquivo criado sozinho em `./data/portaria`, e funciona sem
+rede. O perfil precisa ser pedido assim porque o padrão é `postgres`.
+
+**O completo**, no banco de verdade, para quem tem Docker:
+
+```powershell
+docker run -d --name portaria-db -p 5432:5432 -e POSTGRES_DB=portaria -e POSTGRES_USER=portaria -e POSTGRES_PASSWORD=portaria postgres:18
+```
+
+```powershell
+.\mvnw.cmd spring-boot:run
+```
+
+Dê uns segundos entre um comando e outro: o `docker run` devolve o prompt antes
+de o banco aceitar conexão. O segundo comando não leva perfil porque `postgres`
+já é o padrão, e o Flyway cria o esquema inteiro na primeira subida.
+
+Em qualquer um dos dois, o sistema fica em <http://localhost:8080>.
+
+Os comandos de `pg_ctl` que aparecem logo adiante são de uma instalação local do
+PostgreSQL, com caminhos da máquina de desenvolvimento. Em outra máquina, o
+contêiner acima é o caminho.
+
+**Se o build falhar** com `release version 25 not supported` ou com
+`class file version 69.0`, o JDK ativo não é o 25. Confira com `.\mvnw.cmd -v`:
+a linha `Java version` precisa dizer 25. O projeto compila com Java 25 e não
+roda em versões anteriores, então nesse caso a saída é instalar o JDK 25 e
+apontar o `JAVA_HOME` para ele.
 
 ### Perfil `postgres` — o principal
 

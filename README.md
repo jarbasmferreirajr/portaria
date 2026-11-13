@@ -171,13 +171,23 @@ Esperado: `Tests run: 34, Failures: 0, Errors: 0`.
 **4. Subir a aplicação**
 
 ```powershell
+.\mvnw.cmd spring-boot:run
+```
+
+Sem parâmetro: `postgres` é o perfil padrão desde a Sprint 5, declarado em
+`application.properties`. Assim não há como demonstrar o sistema em H2 por
+engano — para isso seria preciso pedir o perfil `dev` explicitamente.
+
+Se precisar informar o perfil mesmo assim, as aspas em volta do `-D...` são
+obrigatórias no PowerShell:
+
+```powershell
 .\mvnw.cmd spring-boot:run "-Dspring-boot.run.profiles=postgres"
 ```
 
-As aspas em volta do `-D...` são obrigatórias no PowerShell. Sem elas ele parte o
-argumento no ponto, e o Maven recebe `.run.profiles=postgres` como se fosse uma
-fase do ciclo de vida — o erro é `Unknown lifecycle phase`, que não diz nada
-sobre aspas.
+Sem elas o PowerShell parte o argumento no ponto, e o Maven recebe
+`.run.profiles=postgres` como se fosse uma fase do ciclo de vida — o erro é
+`Unknown lifecycle phase`, que não diz nada sobre aspas.
 
 **5. Usar** — <http://localhost:8080>. No log, a linha
 `The following 1 profile is active: "postgres"` confirma que você está no banco
@@ -205,10 +215,10 @@ abre o projeto pela primeira vez, e a alternativa confiável quando o cluster n�
 sobe.
 
 ```powershell
-.\mvnw.cmd spring-boot:run
+.\mvnw.cmd spring-boot:run "-Dspring-boot.run.profiles=dev"
 ```
 
-Ou executar a classe `AplicacaoPortaria` pela IDE. O banco é um arquivo H2 em
+Precisa ser pedido explicitamente: o padrão é `postgres`. O banco é um arquivo H2 em
 `./data/portaria`, criado sozinho, e pode ser inspecionado ao vivo em
 `/h2-console` (URL JDBC `jdbc:h2:file:./data/portaria`, usuário `sa`, senha em
 branco). Esse console **só existe neste perfil**.
@@ -432,9 +442,9 @@ liga, além disso, o console do H2:
 
 | Perfil | Banco | Papel |
 |---|---|---|
-| `dev` *(padrão)* | H2 em arquivo (`./data/portaria`) | Porta de entrada. Clone o repositório e rode: não exige nada instalado e funciona sem rede. |
+| `dev` | H2 em arquivo (`./data/portaria`) | Porta de entrada e alternativa de emergência. Não exige nada instalado e funciona sem rede. |
 | `test` | H2 em memória | Só durante `./mvnw test`. Nasce e morre com o processo; não tem endereço. |
-| `postgres` | PostgreSQL | **Perfil de demonstração e de produção.** É nele que o sistema deve ser visto funcionando. |
+| `postgres` *(padrão)* | PostgreSQL | **Perfil de demonstração e de produção.** É nele que o sistema deve ser visto funcionando, e é o que sobe quando nenhum perfil é informado. |
 
 **A partir da Sprint 5, `postgres` é o perfil de trabalho.** Desenvolvimento
 diário e demonstrações acontecem nele, porque é o banco que a aplicação terá em
@@ -456,8 +466,8 @@ de verdade seria a aplicação instalada num servidor, com `SPRING_PROFILES_ACTI
 e as credenciais vindo do ambiente — assunto de PI-II.
 
 ```sh
-./mvnw spring-boot:run                                      # dev / H2
-./mvnw spring-boot:run -Dspring-boot.run.profiles=postgres  # PostgreSQL
+./mvnw spring-boot:run                                 # postgres (padrão)
+./mvnw spring-boot:run -Dspring-boot.run.profiles=dev  # H2 em arquivo
 ```
 
 ### Subir o PostgreSQL local
